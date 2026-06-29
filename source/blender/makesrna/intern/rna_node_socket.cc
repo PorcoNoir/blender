@@ -2284,6 +2284,16 @@ static void rna_def_node_socket_virtual(BlenderRNA *brna, const char *identifier
   RNA_def_struct_sdna(srna, "bNodeSocket");
 }
 
+static void rna_def_node_socket_sysml_element(BlenderRNA *brna, const char *identifier)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
+  RNA_def_struct_ui_text(
+      srna, "SysML Element Socket", "Reference to a SysML element node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+}
+
 /* Info for generating static subtypes. */
 struct bNodeSocketStaticTypeInfo {
   const char *socket_identifier;
@@ -2580,6 +2590,7 @@ static void rna_def_node_socket_subtypes(BlenderRNA *brna)
   }
 
   rna_def_node_socket_virtual(brna, "NodeSocketVirtual");
+  rna_def_node_socket_sysml_element(brna, "NodeSocketSysMLElement");
 }
 
 void rna_def_node_socket_interface_subtypes(BlenderRNA *brna)

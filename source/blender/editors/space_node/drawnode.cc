@@ -1618,6 +1618,23 @@ static void node_socket_virtual_draw_color_simple(const bke::bNodeSocketType * /
   copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
+/* SysML element reference socket colour (BSML0 / SCRUM-432). */
+static const float sysml_element_socket_color[4] = {0.62f, 0.55f, 0.80f, 1.0f};
+
+static void node_socket_sysml_element_draw_color(bContext * /*C*/,
+                                                 PointerRNA * /*ptr*/,
+                                                 PointerRNA * /*node_ptr*/,
+                                                 float *r_color)
+{
+  copy_v4_v4(r_color, sysml_element_socket_color);
+}
+
+static void node_socket_sysml_element_draw_color_simple(const bke::bNodeSocketType * /*type*/,
+                                                        float *r_color)
+{
+  copy_v4_v4(r_color, sysml_element_socket_color);
+}
+
 }  // namespace ed::space_node
 
 void ED_init_standard_node_socket_type(bke::bNodeSocketType *stype)
@@ -1635,6 +1652,14 @@ void ED_init_node_socket_type_virtual(bke::bNodeSocketType *stype)
   stype->draw = std_node_socket_draw;
   stype->draw_color = node_socket_virtual_draw_color;
   stype->draw_color_simple = node_socket_virtual_draw_color_simple;
+}
+
+void ED_init_node_socket_type_sysml_element(bke::bNodeSocketType *stype)
+{
+  using namespace blender::ed::space_node;
+  stype->draw = std_node_socket_draw;
+  stype->draw_color = node_socket_sysml_element_draw_color;
+  stype->draw_color_simple = node_socket_sysml_element_draw_color_simple;
 }
 
 void ED_node_type_draw_color(const char *idname, float *r_color)

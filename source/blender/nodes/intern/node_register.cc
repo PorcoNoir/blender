@@ -6,6 +6,7 @@
 #include "NOD_geometry.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
+#include "NOD_sysml.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -156,6 +157,7 @@ void register_nodes()
   register_texture_nodes();
   register_geometry_nodes();
   register_function_nodes();
+  register_sysml_nodes();
 }
 
 }  // namespace blender
