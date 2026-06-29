@@ -22,6 +22,7 @@ namespace blender::nodes {
 
 static void sysml_connection_usage_init(bNodeTree *ntree, bNode *node)
 {
+  sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "connect", "Connect");
@@ -37,6 +38,7 @@ void register_node_type_sysml_connection_usage()
   ntype.ui_description = "SysML v2 connection usage (connect ... to ...)";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.initfunc = sysml_connection_usage_init;
+  sysml_node_storage_register(ntype);
 
   bke::node_register_type(ntype);
 }

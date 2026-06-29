@@ -39,4 +39,14 @@ void sysml_node_type_base(bke::bNodeType *ntype,
                           UString idname,
                           std::optional<int16_t> legacy_type = std::nullopt);
 
+/**
+ * Attach the shared `NodeSysMLElement` storage to a node type (SCRUM-434).
+ * Uses the standard free/copy; the struct is plain POD so it persists via the
+ * generic node-storage serialization.
+ */
+void sysml_node_storage_register(bke::bNodeType &ntype);
+
+/** Allocate the `NodeSysMLElement` storage on a freshly created node. */
+void sysml_node_storage_init(bNode *node);
+
 }  // namespace blender::nodes

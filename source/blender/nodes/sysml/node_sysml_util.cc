@@ -4,9 +4,13 @@
 
 #include "node_sysml_util.hh"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
+
+#include "DNA_node_types.h"
 
 #include "node_util.hh"
 
@@ -31,6 +35,17 @@ void sysml_node_type_base(bke::bNodeType *ntype,
 
   ntype->poll = sysml_node_poll_default;
   ntype->insert_link = node_insert_link_default;
+}
+
+void sysml_node_storage_register(bke::bNodeType &ntype)
+{
+  bke::node_type_storage(
+      ntype, "NodeSysMLElement", node_free_standard_storage, node_copy_standard_storage);
+}
+
+void sysml_node_storage_init(bNode *node)
+{
+  node->storage = MEM_new<NodeSysMLElement>(__func__);
 }
 
 }  // namespace blender::nodes

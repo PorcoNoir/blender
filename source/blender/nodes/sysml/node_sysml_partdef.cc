@@ -23,6 +23,7 @@ namespace blender::nodes {
 
 static void sysml_part_def_init(bNodeTree *ntree, bNode *node)
 {
+  sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "members", "Members");
   bke::node_add_socket(
@@ -38,6 +39,7 @@ void register_node_type_sysml_part_def()
   ntype.ui_description = "SysML v2 part definition (part def)";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.initfunc = sysml_part_def_init;
+  sysml_node_storage_register(ntype);
 
   bke::node_register_type(ntype);
 }

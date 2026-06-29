@@ -5295,6 +5295,34 @@ static void def_sh_attribute(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 }
 
+/* Shared storage properties for every SysML element node (BSML0 / SCRUM-434). */
+static void def_sysml_element(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeSysMLElement", "storage");
+
+  prop = RNA_def_property(srna, "element_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "name");
+  RNA_def_property_ui_text(prop, "Name", "SysML element name");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "short_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "short_name");
+  RNA_def_property_ui_text(prop, "Short Name", "Secondary identifier written as <short>");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "multiplicity", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "multiplicity");
+  RNA_def_property_ui_text(prop, "Multiplicity", "Multiplicity expression, e.g. [0..*]");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "is_abstract", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SYSML_ELEMENT_ABSTRACT);
+  RNA_def_property_ui_text(prop, "Abstract", "Definition is abstract");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_sh_tex(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10573,6 +10601,10 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("TextureNode", "TextureNodeValToNor");
   define("TextureNode", "TextureNodeValToRGB", def_colorramp);
   define("TextureNode", "TextureNodeViewer");
+
+  define("NodeInternal", "SysMLNodePartDef", def_sysml_element);
+  define("NodeInternal", "SysMLNodePartUsage", def_sysml_element);
+  define("NodeInternal", "SysMLNodeConnectionUsage", def_sysml_element);
 
   define("FunctionNode", "FunctionNodeAlignEulerToVector");
   define("FunctionNode", "FunctionNodeAlignRotationToVector");
