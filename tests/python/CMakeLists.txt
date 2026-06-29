@@ -328,6 +328,13 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop_datablock.py
 )
 
+# BSML0 — SysML v2 node tree. Currently red/green: the tree-type case passes
+# (SCRUM-430), the PartDef-node case fails until SCRUM-433 adds element nodes.
+add_blender_test(
+  bl_sysml_nodetree
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_nodetree.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

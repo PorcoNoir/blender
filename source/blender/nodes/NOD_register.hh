@@ -19,6 +19,7 @@ void register_compositor_nodes();
 void register_function_nodes();
 void register_geometry_nodes();
 void register_shader_nodes();
+void register_sysml_nodes();
 void register_texture_nodes();
 
 /**

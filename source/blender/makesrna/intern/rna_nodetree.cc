@@ -10141,6 +10141,18 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_TEXTURE);
 }
 
+static void rna_def_sysml_nodetree(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "SysMLNodeTree", "NodeTree");
+  RNA_def_struct_ui_text(srna,
+                         "SysMLv2 Node Tree",
+                         "Node tree of OMG SysMLv2 elements and relationships");
+  RNA_def_struct_sdna(srna, "bNodeTree");
+  RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+}
+
 static void rna_def_geometry_nodetree(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -10922,6 +10934,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_shader_nodetree(brna);
   rna_def_texture_nodetree(brna);
   rna_def_geometry_nodetree(brna);
+  rna_def_sysml_nodetree(brna);
 
   rna_def_nodes(brna);
 
