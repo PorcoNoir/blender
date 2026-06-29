@@ -19,7 +19,11 @@ namespace blender {
 /* The shared SysML element reference socket (SCRUM-432). */
 void register_node_socket_type_sysml_element();
 
-/* Element-node register functions are declared here as the node stories land,
- * e.g. void register_node_type_sysml_part_def(); */
+/* Element-node register functions (SCRUM-433+). */
+namespace nodes {
+void register_node_type_sysml_part_def();
+void register_node_type_sysml_part_usage();
+void register_node_type_sysml_connection_usage();
+}  // namespace nodes
 
 }  // namespace blender

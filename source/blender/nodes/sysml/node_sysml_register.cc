@@ -13,8 +13,10 @@ void register_sysml_nodes()
   register_node_tree_type_sysml();
   register_node_socket_type_sysml_element();
 
-  /* Element nodes (PartDef, PartUsage, ConnectionUsage, …) are registered
-   * here once SCRUM-433 lands. */
+  /* Element nodes (SCRUM-433). */
+  nodes::register_node_type_sysml_part_def();
+  nodes::register_node_type_sysml_part_usage();
+  nodes::register_node_type_sysml_connection_usage();
 }
 
 }  // namespace blender
