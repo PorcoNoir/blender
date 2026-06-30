@@ -17,6 +17,9 @@ set(INC_SYS
 )
 
 set(SRC
+  node_sysml_connectionusage.cc
+  node_sysml_partdef.cc
+  node_sysml_partusage.cc
   node_sysml_register.cc
   node_sysml_socket.cc
   node_sysml_tree.cc

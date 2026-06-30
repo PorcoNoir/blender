@@ -2733,6 +2733,31 @@ struct NodeShaderAttribute {
   char _pad[4] = {};
 };
 
+/** #NodeSysMLElement.flag */
+enum {
+  /** Definition is abstract (`abstract def`). */
+  SYSML_ELEMENT_ABSTRACT = 1 << 0,
+};
+
+/**
+ * Shared per-node storage for every SysML element node (BSML0 / SCRUM-434).
+ * One flexible struct keeps the DNA stable across the 47 element kinds, so
+ * adding kinds doesn't churn the `.blend` format. Plain POD (no pointers), so
+ * it round-trips via the generic node-storage write/read by struct name.
+ */
+struct NodeSysMLElement {
+  DNA_DEFINE_CXX_METHODS(NodeSysMLElement)
+
+  /** SysML element name (distinct from the node's own label). */
+  char name[256] = "";
+  /** Optional short name written in angle brackets: `<short>`. */
+  char short_name[64] = "";
+  /** Multiplicity expression, e.g. `[0..*]`. Empty emits none. */
+  char multiplicity[64] = "";
+  int flag = 0;
+  char _pad[4] = {};
+};
+
 struct NodeShaderVectTransform {
   DNA_DEFINE_CXX_METHODS(NodeShaderVectTransform)
 
