@@ -44,9 +44,20 @@ jobs:
           # Library + addon submodules are fetched by make_update below (the
           # lib submodule lives on projects.blender.org and is large/LFS), so
           # we skip recursive submodule checkout here.
+          #
+          # LFS is fetched from upstream in the next step, NOT here: the GitHub
+          # fork does not host the Blender LFS objects (they live on
+          # projects.blender.org), so checkout's own lfs:true 404s.
           submodules: false
-          lfs: true
-          fetch-depth: 0
+          lfs: false
+          fetch-depth: 1
+
+      - name: Fetch LFS objects from upstream Blender
+        shell: bash
+        run: |
+          git config lfs.url https://projects.blender.org/blender/blender.git/info/lfs
+          git lfs install --local
+          GIT_TERMINAL_PROMPT=0 git lfs pull
 
       - name: Show available disk
         shell: pwsh
