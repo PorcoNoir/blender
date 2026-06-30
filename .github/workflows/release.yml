@@ -1,0 +1,106 @@
+# Blender-SML release pipeline.
+#
+# Trigger: push a tag like `blender-sml-v0.1.0`. The job builds the fork on
+# Windows with the gate-required MSVC, packages the install tree, and publishes
+# a GitHub Release whose notes come from tools/sysml/releases/<tag>.md.
+#
+# Versioning: the tag IS the version (semver), and should match the Jira
+# Release/Fix Version name. See tools/sysml/releases/ for notes per version.
+#
+# CAVEATS (read before relying on this in anger):
+#   * Blender is a *heavy* build. GitHub-hosted runners have limited disk
+#     (~14 GB free on C:) and a 6 h job cap; a full build + precompiled
+#     libraries can exceed the disk budget. If this fails on space/time, move
+#     to a SELF-HOSTED runner with the libraries pre-fetched and the toolchain
+#     pre-installed (recommended for real releases).
+#   * MSVC pin: Blender requires cl >= 19.44.35216 (VS 2022 17.14.14). Hosted
+#     runners track their own VS patch; the BLI_normalized_int_types.hh fix in
+#     this fork means any 19.44+ builds, so we use the runner's VS and only
+#     fail if it is below the gate. To pin an exact patch, pre-install it via
+#     the Visual Studio installer on a self-hosted runner.
+#   * USD/Hydra are OFF to match the BSML0 spike build; flip them on once a
+#     release needs them.
+
+name: Blender-SML Release
+
+on:
+  push:
+    tags:
+      - "blender-sml-v*"
+
+permissions:
+  contents: write  # required to create the GitHub Release
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    timeout-minutes: 360
+    env:
+      BUILD_DIR: ${{ github.workspace }}\..\build_release
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          # Library + addon submodules are fetched by make_update below (the
+          # lib submodule lives on projects.blender.org and is large/LFS), so
+          # we skip recursive submodule checkout here.
+          submodules: false
+          lfs: true
+          fetch-depth: 0
+
+      - name: Show available disk
+        shell: pwsh
+        run: Get-PSDrive C | Select-Object Used, Free
+
+      - name: Fetch precompiled libraries + source submodules
+        shell: cmd
+        # make_update pulls the platform libraries (lib/windows_x64) and the
+        # source submodules (addons, translations, ...). --no-blender skips
+        # updating the already-checked-out blender git itself.
+        run: python build_files\utils\make_update.py --no-blender
+
+      - name: Set up MSVC dev environment (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Verify compiler meets the Blender gate (>= 19.44.35216)
+        shell: pwsh
+        run: cl 2>&1 | Select-String "Version"
+
+      - name: Configure (CMake + Ninja)
+        shell: cmd
+        run: >
+          cmake -S . -B "%BUILD_DIR%" -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DWITH_USD=OFF -DWITH_HYDRA=OFF
+
+      - name: Build and install
+        shell: cmd
+        run: cmake --build "%BUILD_DIR%" --target install --parallel
+
+      - name: Smoke-test + run SysML node suite
+        shell: cmd
+        # Fail the release if the SysML feature tests regress.
+        run: >
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_nodetree.py
+
+      - name: Package install tree
+        shell: pwsh
+        run: |
+          $zip = "$env:GITHUB_WORKSPACE\${{ github.ref_name }}-windows-x64.zip"
+          Compress-Archive -Path "$env:BUILD_DIR\bin\*" -DestinationPath $zip
+          "ASSET=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          # Notes file must exist for this version, e.g.
+          # tools/sysml/releases/blender-sml-v0.1.0.md
+          body_path: tools/sysml/releases/${{ github.ref_name }}.md
+          files: ${{ env.ASSET }}
+          draft: false
+          prerelease: true  # 0.x = pre-1.0; drop once stable
+          fail_on_unmatched_files: true
