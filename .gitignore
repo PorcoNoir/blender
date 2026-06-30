@@ -1,6 +1,9 @@
 # generic files to ignore
 .*
 
+# ...but keep CI/workflow configuration under .github/ tracked.
+!.github/
+
 # python temp paths
 __pycache__/
 *.py[cod]
