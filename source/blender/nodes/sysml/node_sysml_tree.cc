@@ -29,20 +29,6 @@ namespace blender {
 
 bke::bNodeTreeType *ntreeType_SysML;
 
-/**
- * Resolve the active SysML tree from context. The standalone SysML node
- * editor drives the active tree from its header selector / pin, so there is
- * no datablock-derived context to resolve yet. SCRUM-431 (editor + add-menu)
- * fleshes this out; for now it is a valid no-op.
- */
-static void sysml_node_tree_get_from_context(const bContext * /*C*/,
-                                             bke::bNodeTreeType * /*treetype*/,
-                                             bNodeTree ** /*r_ntree*/,
-                                             ID ** /*r_id*/,
-                                             ID ** /*r_from*/)
-{
-}
-
 static void sysml_node_tree_update(bNodeTree *ntree)
 {
   /* Keep reroute socket types consistent, mirroring the other trees. */
@@ -72,7 +58,11 @@ void register_node_tree_type_sysml()
   tt->ui_icon = ICON_NODETREE; /* Dedicated icon comes with the editor story. */
   tt->ui_description = N_("Model OMG SysML v2 elements and relationships using nodes");
 
-  tt->get_from_context = sysml_node_tree_get_from_context;
+  /* Intentionally leave `get_from_context` null: a SysML tree is a standalone
+   * independent ID block driven by the editor's header selector, not derived
+   * from another datablock's context. Registering even a no-op callback makes
+   * snode_set_context() reset the editor's tree on every redraw (clearing
+   * `edittree`, which greys out the Add menu), so we omit it entirely. */
   tt->update = sysml_node_tree_update;
   tt->foreach_nodeclass = foreach_nodeclass;
 
