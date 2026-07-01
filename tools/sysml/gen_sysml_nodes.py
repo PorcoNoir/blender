@@ -32,6 +32,7 @@ GEN_NODES_DIR = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "nodes"
 OUT_REGISTER = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_nodes_register.generated.hh"
 OUT_SOURCES = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_generated_sources.cmake"
 OUT_RNA = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_rna_defs.generated.hh"
+OUT_MENU = REPO_ROOT / "scripts" / "startup" / "bl_ui" / "node_add_menu_sysml_generated.py"
 
 GEN_BANNER = (
     "/* SPDX-FileCopyrightText: 2026 Blender Authors\n"
@@ -243,6 +244,38 @@ SUBJECT_KINDS = {"requirement"}                               # `subject` wire
 # enum defs aren't specializable; conjugated ports wire an `original` instead.
 NO_SPECIALIZE_DEFS = {"enumeration", "conjugated_port"}
 
+# Add-menu families + accent colours (ported from the editor's ACCENT map in
+# src/nodes/sysml.ts). Every kind's base stem maps to one family.
+FAMILY_ACCENT = {
+    "Packages": "#7e9ac0", "Structure": "#a99dd4", "Ports": "#c0a050",
+    "Connections": "#c97b5e", "Behavior": "#a76db5", "Requirements": "#b07050",
+    "Cases": "#5b8fb9", "Views": "#76b8d9", "Metadata": "#9aa3ad",
+}
+FAMILY_ORDER = ["Packages", "Structure", "Ports", "Connections", "Behavior",
+                "Requirements", "Cases", "Views", "Metadata"]
+FAMILY_OF = {
+    "package": "Packages", "library_package": "Packages", "import": "Packages", "alias": "Packages",
+    "part": "Structure", "item": "Structure", "attribute": "Structure", "occurrence": "Structure",
+    "reference": "Structure", "enumeration": "Structure", "data_type": "Structure",
+    "port": "Ports", "conjugated_port": "Ports",
+    "connection": "Connections", "interface": "Connections", "flow": "Connections",
+    "allocation": "Connections", "binding": "Connections", "succession": "Connections",
+    "action": "Behavior", "state": "Behavior", "calc": "Behavior",
+    "requirement": "Requirements", "constraint": "Requirements", "concern": "Requirements", "satisfy": "Requirements",
+    "case": "Cases", "use_case": "Cases", "verification_case": "Cases", "analysis_case": "Cases",
+    "view": "Views", "viewpoint": "Views", "rendering": "Views",
+    "metadata": "Metadata", "comment": "Metadata", "documentation": "Metadata",
+}
+
+
+def family_of(editor_id: str) -> str:
+    return FAMILY_OF.get(kind_base(editor_id), "Metadata")
+
+
+def accent_rgb(family: str):
+    h = FAMILY_ACCENT[family].lstrip("#")
+    return tuple(round(int(h[i:i + 2], 16) / 255.0, 4) for i in (0, 2, 4))
+
 
 def kind_base(editor_id: str) -> str:
     """`sysml.part_def` / `sysml.part_usage` -> `part` (family stem)."""
@@ -306,6 +339,13 @@ def emit_node_cc(editor_id: str, entry: dict) -> str:
     ]
     for d, ident, name in socket_rules(editor_id, entry):
         lines.append("  " + add.format(d, ident, name))
+    r, g, b = accent_rgb(family_of(editor_id))
+    lines += [
+        f"  node->color[0] = {r}f;",
+        f"  node->color[1] = {g}f;",
+        f"  node->color[2] = {b}f;",
+        "  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */",
+    ]
     lines += [
         "}",
         "",
@@ -343,6 +383,35 @@ def emit_rna_defs(found: dict) -> str:
     ]
     lines += [f'define("NodeInternal", "{node_idname(eid)}", def_sysml_element);' for eid in sorted(found)]
     lines.append("")
+    return "\n".join(lines)
+
+
+def emit_menu_module(found: dict) -> str:
+    """Add-menu families as Python data for node_add_menu_sysml.py: each family
+    lists its (idname, ui_name) with defs before usages."""
+    fam: dict = {}
+    for eid in sorted(found):
+        fam.setdefault(family_of(eid), []).append((node_idname(eid), ui_name(eid), eid))
+    lines = [
+        "# SPDX-FileCopyrightText: 2026 Blender Authors",
+        "#",
+        "# SPDX-License-Identifier: GPL-2.0-or-later",
+        "#",
+        "# AUTO-GENERATED - DO NOT EDIT. Regenerate: python tools/sysml/gen_sysml_nodes.py",
+        "#",
+        "# SysML add-menu families. Each entry: (family_label, accent_hex,",
+        "# [(node_idname, ui_name), ...]). Consumed by node_add_menu_sysml.py.",
+        "",
+        "SYSML_MENU_FAMILIES = [",
+    ]
+    for f in FAMILY_ORDER:
+        entries = sorted(fam.get(f, []), key=lambda t: (not t[2].endswith("_def"), t[0]))
+        if not entries:
+            continue
+        lines.append(f"    ({f!r}, {FAMILY_ACCENT[f]!r}, [")
+        lines += [f"        ({idname!r}, {label!r})," for idname, label, _ in entries]
+        lines.append("    ]),")
+    lines += ["]", ""]
     return "\n".join(lines)
 
 
@@ -444,7 +513,8 @@ def main() -> None:
     # Full set of generated outputs (path -> text): the kind table, the
     # per-kind node source, and the registration aggregator.
     outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found),
-               OUT_SOURCES: emit_sources_cmake(found), OUT_RNA: emit_rna_defs(found)}
+               OUT_SOURCES: emit_sources_cmake(found), OUT_RNA: emit_rna_defs(found),
+               OUT_MENU: emit_menu_module(found)}
     for eid in sorted(found):
         outputs[GEN_NODES_DIR / f"node_sysml_{eid[len('sysml.'):]}.cc"] = emit_node_cc(eid, found[eid])
 

@@ -24,6 +24,10 @@ static void sysml_interface_usage_init(bNodeTree *ntree, bNode *node)
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "connect", "Connect");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "to", "To");
+  node->color[0] = 0.7882f;
+  node->color[1] = 0.4824f;
+  node->color[2] = 0.3686f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
 void register_node_type_sysml_interface_usage()

@@ -23,6 +23,10 @@ static void sysml_part_def_init(bNodeTree *ntree, bNode *node)
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "members", "Members");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "specializes", "Specializes");
+  node->color[0] = 0.6627f;
+  node->color[1] = 0.6157f;
+  node->color[2] = 0.8314f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
 void register_node_type_sysml_part_def()

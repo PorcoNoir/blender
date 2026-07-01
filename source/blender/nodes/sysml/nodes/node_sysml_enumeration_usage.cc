@@ -23,6 +23,10 @@ static void sysml_enumeration_usage_init(bNodeTree *ntree, bNode *node)
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "redefines", "Redefines");
+  node->color[0] = 0.6627f;
+  node->color[1] = 0.6157f;
+  node->color[2] = 0.8314f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
 void register_node_type_sysml_enumeration_usage()

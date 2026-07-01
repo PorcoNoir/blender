@@ -187,6 +187,12 @@ class TestSysMLAddMenu(SysMLTestCase):
         self.assertTrue(hasattr(bpy.types, "NODE_MT_sysml_node_add_all"),
                         "SysML add-menu is not registered")
 
+    def test_family_submenus_registered(self):
+        """The categorized add-menu exposes family submenus (SCRUM-442)."""
+        for slug in ("packages", "structure", "connections", "requirements", "behavior"):
+            self.assertTrue(hasattr(bpy.types, f"NODE_MT_category_sysml_{slug}"),
+                            f"missing family submenu '{slug}'")
+
 
 class TestSysMLSaveReload(SysMLTestCase):
     """The SCRUM-435 gate: a model survives a .blend save/reload round-trip."""
@@ -252,6 +258,13 @@ class TestSysMLGeneratedTaxonomy(SysMLTestCase):
             self.assertEqual(node.bl_idname, idname)
             self.assertTrue(hasattr(node, "element_name"), f"{idname} missing storage RNA")
             self.assertEqual(node.outputs["Self"].bl_idname, SOCKET_IDNAME)
+
+    def test_nodes_carry_family_accent_color(self):
+        """Generated nodes get their family accent as a custom header colour (SCRUM-442)."""
+        ng = self.new_tree()
+        node = ng.nodes.new("SysMLNodePartDef")
+        self.assertTrue(node.use_custom_color, "node missing custom accent colour")
+        self.assertGreater(sum(node.color), 0.0)
 
     def test_family_sampling_roundtrip(self):
         sample = ["SysMLNodePartDef", "SysMLNodeRequirementUsage", "SysMLNodeActionDef",
