@@ -293,6 +293,72 @@ class TestSysMLGeneratedTaxonomy(SysMLTestCase):
                 pass
 
 
+class TestSysMLForwardCompat(SysMLTestCase):
+    """SCRUM-443: the single shared NodeSysMLElement storage backs every kind,
+    and a mixed model (storage values + links) survives a .blend round-trip."""
+
+    def test_shared_storage_on_all_kinds(self):
+        ng = self.new_tree()
+        idnames = [t for t in dir(bpy.types)
+                   if t.startswith("SysMLNode") and t not in ("SysMLNodeTree", "SysMLNodeGroup")]
+        for idname in sorted(idnames):
+            node = ng.nodes.new(idname)
+            for prop in ("element_name", "short_name", "multiplicity", "is_abstract"):
+                self.assertTrue(hasattr(node, prop), f"{idname} missing storage prop '{prop}'")
+
+    def test_values_and_links_survive_roundtrip(self):
+        ng = bpy.data.node_groups.new("sysml_fc_model", TREE_IDNAME)
+        ng.use_fake_user = True
+        pdef = ng.nodes.new("SysMLNodePartDef")
+        pdef.element_name = "Vehicle"
+        pdef.short_name = "veh"
+        pdef.multiplicity = "[1]"
+        pdef.is_abstract = True
+        pusage = ng.nodes.new("SysMLNodePartUsage")
+        pusage.element_name = "myCar"
+        conn = ng.nodes.new("SysMLNodeConnectionUsage")
+        ng.links.new(pdef.outputs["Self"], pusage.inputs["Type"])
+        ng.links.new(pusage.outputs["Self"], conn.inputs["Connect"])
+
+        tmpdir = tempfile.mkdtemp(prefix="sysml_fc_")
+        path = os.path.join(tmpdir, "fc.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            ng2 = bpy.data.node_groups.get("sysml_fc_model")
+            self.assertIsNotNone(ng2, "model did not survive save/reload")
+            pdef2 = next(n for n in ng2.nodes if n.bl_idname == "SysMLNodePartDef")
+            self.assertEqual(pdef2.element_name, "Vehicle")
+            self.assertEqual(pdef2.short_name, "veh")
+            self.assertEqual(pdef2.multiplicity, "[1]")
+            self.assertTrue(pdef2.is_abstract)
+            self.assertEqual(len(ng2.links), 2, "links did not survive reload")
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+    def test_subset_file_loads(self):
+        """A file saved with only a subset of kinds still loads (forward-compat)."""
+        ng = bpy.data.node_groups.new("sysml_subset", TREE_IDNAME)
+        ng.use_fake_user = True
+        ng.nodes.new("SysMLNodePartDef")
+        tmpdir = tempfile.mkdtemp(prefix="sysml_sub_")
+        path = os.path.join(tmpdir, "sub.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            self.assertIsNotNone(bpy.data.node_groups.get("sysml_subset"))
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+
 def main():
     # Drop Blender's own argv so unittest only sees args after "--".
     argv = [sys.argv[0]]
