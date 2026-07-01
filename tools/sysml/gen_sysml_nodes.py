@@ -28,6 +28,21 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROBES_DIR = REPO_ROOT / "tools" / "sysml" / "probes"
 OUT_HH = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_elements.generated.hh"
+GEN_NODES_DIR = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "nodes"
+OUT_REGISTER = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_nodes_register.generated.hh"
+
+GEN_BANNER = (
+    "/* SPDX-FileCopyrightText: 2026 Blender Authors\n"
+    " *\n"
+    " * SPDX-License-Identifier: GPL-2.0-or-later */\n"
+    "\n"
+    "/** \\file\n"
+    " * \\ingroup nodes\n"
+    " *\n"
+    " * AUTO-GENERATED - DO NOT EDIT.\n"
+    " * Regenerate: python tools/sysml/gen_sysml_nodes.py\n"
+    " */\n"
+)
 
 # Floor picked conservatively (mirrors the TS regen tool): abort rather than
 # clobber the table with garbage if the probe under-harvests.
@@ -218,6 +233,80 @@ def ui_name(editor_id: str) -> str:
     return " ".join(subst.get(p, p.capitalize()) for p in parts)
 
 
+def socket_rules(entry: dict):
+    """Relationship input sockets a kind carries, from its flags. Every node
+    also has the `self` identity output (added by the template).
+
+    NOTE: core rules (parity for PartDef/PartUsage). Connector ends
+    (`connect`/`to`/`from`) and `subject` are refined in SCRUM-440."""
+    socks = []
+    if entry["is_container"]:
+        socks.append(("SOCK_IN", "members", "Members"))
+    if entry["is_usage"]:
+        socks.append(("SOCK_IN", "of", "Type"))
+        socks.append(("SOCK_IN", "redefines", "Redefines"))
+    elif entry["can_specialize"]:
+        socks.append(("SOCK_IN", "specializes", "Specializes"))
+    return socks
+
+
+def emit_node_cc(editor_id: str, entry: dict) -> str:
+    stem = editor_id[len("sysml."):]
+    init = f"sysml_{stem}_init"
+    reg = f"register_node_type_sysml_{stem}"
+    idname = node_idname(editor_id)
+    label = ui_name(editor_id)
+    add = 'bke::node_add_socket(*ntree, *node, {}, "NodeSocketSysMLElement", "{}", "{}");'
+    lines = [
+        GEN_BANNER,
+        '#include "BKE_node.hh"',
+        "",
+        '#include "DNA_node_types.h"',
+        "",
+        '#include "node_sysml_util.hh"',
+        "",
+        "namespace blender::nodes {",
+        "",
+        f"static void {init}(bNodeTree *ntree, bNode *node)",
+        "{",
+        "  sysml_node_storage_init(node);",
+        "  " + add.format("SOCK_OUT", "self", "Self"),
+    ]
+    for d, ident, name in socket_rules(entry):
+        lines.append("  " + add.format(d, ident, name))
+    lines += [
+        "}",
+        "",
+        f"void {reg}()",
+        "{",
+        "  static bke::bNodeType ntype;",
+        "",
+        f'  sysml_node_type_base(&ntype, "{idname}"_ustr);',
+        f'  ntype.ui_name = "{label}";',
+        f'  ntype.ui_description = "SysML v2 {label.lower()}";',
+        "  ntype.nclass = NODE_CLASS_INPUT;",
+        f"  ntype.initfunc = {init};",
+        "  sysml_node_storage_register(ntype);",
+        "",
+        "  bke::node_register_type(ntype);",
+        "}",
+        "",
+        "}  // namespace blender::nodes",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def emit_register(found: dict) -> str:
+    stems = [eid[len("sysml."):] for eid in sorted(found)]
+    lines = [GEN_BANNER, "#pragma once", "", "namespace blender::nodes {", ""]
+    lines += [f"void register_node_type_sysml_{s}();" for s in stems]
+    lines += ["", "inline void register_generated_sysml_nodes()", "{"]
+    lines += [f"  register_node_type_sysml_{s}();" for s in stems]
+    lines += ["}", "", "}  // namespace blender::nodes", ""]
+    return "\n".join(lines)
+
+
 def sml2c_version(sml2c: str) -> str:
     try:
         return subprocess.run([sml2c, "--version"], capture_output=True, text=True).stdout.strip() or "unknown"
@@ -288,15 +377,26 @@ def main() -> None:
     if len(found) < KIND_FLOOR:
         sys.exit(f"Only {len(found)} kinds harvested (< floor {KIND_FLOOR}); aborting.")
 
-    text = emit_hh(found, version)
+    # Full set of generated outputs (path -> text): the kind table, the
+    # per-kind node source, and the registration aggregator.
+    outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found)}
+    for eid in sorted(found):
+        outputs[GEN_NODES_DIR / f"node_sysml_{eid[len('sysml.'):]}.cc"] = emit_node_cc(eid, found[eid])
+
     if check:
-        current = OUT_HH.read_text(encoding="utf-8") if OUT_HH.exists() else ""
-        if current != text:
-            sys.exit(f"{OUT_HH.name} is stale vs the pinned sml2c. Run gen_sysml_nodes.py and commit.")
-        print(f"{OUT_HH.name} is up to date ({len(found)} kinds).", file=sys.stderr)
+        stale = [p for p, t in outputs.items()
+                 if (p.read_text(encoding="utf-8") if p.exists() else "") != t]
+        if stale:
+            sys.exit("Stale generated files vs the pinned sml2c: "
+                     + ", ".join(p.name for p in stale) + ". Run gen_sysml_nodes.py and commit.")
+        print(f"All {len(outputs)} generated files up to date ({len(found)} kinds).", file=sys.stderr)
         return
-    OUT_HH.write_text(text, encoding="utf-8")
-    print(f"Wrote {OUT_HH.relative_to(REPO_ROOT)} ({len(found)} kinds).", file=sys.stderr)
+
+    GEN_NODES_DIR.mkdir(parents=True, exist_ok=True)
+    for p, t in outputs.items():
+        p.write_text(t, encoding="utf-8")
+    print(f"Wrote {len(outputs)} files: {OUT_HH.name}, {OUT_REGISTER.name}, and "
+          f"{len(found)} node_sysml_*.cc.", file=sys.stderr)
 
 
 if __name__ == "__main__":
