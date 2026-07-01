@@ -56,7 +56,7 @@ package SamplePackage {
     // ---- Usages (single-keyword forms, container by default) ----
     // Wrapped in a part def so they're syntactically valid as members.
     part def WithUsages {
-        part         sample_part           : SamplePartDef;
+        part         sample_part           : SamplePartDef { part nested_part : SamplePartDef; }
         attribute    sample_attribute      : SampleAttributeDef;
         port         sample_port           : SamplePortDef;
         item         sample_item           : SampleItemDef;

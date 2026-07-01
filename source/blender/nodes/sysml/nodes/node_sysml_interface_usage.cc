@@ -22,7 +22,8 @@ static void sysml_interface_usage_init(bNodeTree *ntree, bNode *node)
   sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
-  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "redefines", "Redefines");
+  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "connect", "Connect");
+  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "to", "To");
 }
 
 void register_node_type_sysml_interface_usage()

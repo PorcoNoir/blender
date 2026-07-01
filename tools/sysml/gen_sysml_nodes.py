@@ -233,20 +233,50 @@ def ui_name(editor_id: str) -> str:
     return " ".join(subst.get(p, p.capitalize()) for p in parts)
 
 
-def socket_rules(entry: dict):
-    """Relationship input sockets a kind carries, from its flags. Every node
-    also has the `self` identity output (added by the template).
+# Connector families and their end sockets (ports from nodes/sysml.ts):
+CONNECTOR_CONNECT = {"connection", "interface", "allocation"}  # connect ... to
+CONNECTOR_FLOW = {"flow"}                                      # from ... to
+SUBJECT_KINDS = {"requirement"}                               # `subject` wire
+# Definitions are specializable and carry a `specializes` socket, EXCEPT these:
+# enum defs aren't specializable; conjugated ports wire an `original` instead.
+NO_SPECIALIZE_DEFS = {"enumeration", "conjugated_port"}
 
-    NOTE: core rules (parity for PartDef/PartUsage). Connector ends
-    (`connect`/`to`/`from`) and `subject` are refined in SCRUM-440."""
+
+def kind_base(editor_id: str) -> str:
+    """`sysml.part_def` / `sysml.part_usage` -> `part` (family stem)."""
+    stem = editor_id[len("sysml."):]
+    for suffix in ("_def", "_usage"):
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)]
+    return stem
+
+
+def socket_rules(editor_id: str, entry: dict):
+    """Relationship input sockets for a kind, from its flags + family. Every
+    node also has the `self` identity output (added by the template).
+
+    Ordering is fixed (containment -> typing -> connector ends -> specialization
+    -> subject) so the generated PartDef/PartUsage/ConnectionUsage match the
+    hand-written BSML0 nodes byte-for-byte in socket order."""
+    base = kind_base(editor_id)
+    is_connector = base in CONNECTOR_CONNECT or base in CONNECTOR_FLOW
     socks = []
     if entry["is_container"]:
         socks.append(("SOCK_IN", "members", "Members"))
     if entry["is_usage"]:
         socks.append(("SOCK_IN", "of", "Type"))
-        socks.append(("SOCK_IN", "redefines", "Redefines"))
-    elif entry["can_specialize"]:
+    if entry["is_usage"] and base in CONNECTOR_CONNECT:
+        socks.append(("SOCK_IN", "connect", "Connect"))
+        socks.append(("SOCK_IN", "to", "To"))
+    elif entry["is_usage"] and base in CONNECTOR_FLOW:
+        socks.append(("SOCK_IN", "from", "From"))
+        socks.append(("SOCK_IN", "to", "To"))
+    if editor_id.endswith("_def") and base not in NO_SPECIALIZE_DEFS:
         socks.append(("SOCK_IN", "specializes", "Specializes"))
+    elif editor_id.endswith("_usage") and not is_connector:
+        socks.append(("SOCK_IN", "redefines", "Redefines"))
+    if base in SUBJECT_KINDS:
+        socks.append(("SOCK_IN", "subject", "Subject"))
     return socks
 
 
@@ -272,7 +302,7 @@ def emit_node_cc(editor_id: str, entry: dict) -> str:
         "  sysml_node_storage_init(node);",
         "  " + add.format("SOCK_OUT", "self", "Self"),
     ]
-    for d, ident, name in socket_rules(entry):
+    for d, ident, name in socket_rules(editor_id, entry):
         lines.append("  " + add.format(d, ident, name))
     lines += [
         "}",

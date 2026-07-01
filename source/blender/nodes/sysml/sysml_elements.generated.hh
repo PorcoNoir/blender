@@ -57,7 +57,7 @@
   X("sysml.occurrence_usage", "SysMLNodeOccurrenceUsage", "Occurrence Usage", false, true, false) \
   X("sysml.package", "SysMLNodePackage", "Package", true, false, false) \
   X("sysml.part_def", "SysMLNodePartDef", "Part Definition", true, false, false) \
-  X("sysml.part_usage", "SysMLNodePartUsage", "Part Usage", false, true, false) \
+  X("sysml.part_usage", "SysMLNodePartUsage", "Part Usage", true, true, false) \
   X("sysml.port_def", "SysMLNodePortDef", "Port Definition", false, false, false) \
   X("sysml.port_usage", "SysMLNodePortUsage", "Port Usage", false, true, false) \
   X("sysml.reference_usage", "SysMLNodeReferenceUsage", "Reference Usage", false, true, false) \

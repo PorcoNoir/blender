@@ -22,6 +22,7 @@ static void sysml_attribute_def_init(bNodeTree *ntree, bNode *node)
   sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "members", "Members");
+  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "specializes", "Specializes");
 }
 
 void register_node_type_sysml_attribute_def()
