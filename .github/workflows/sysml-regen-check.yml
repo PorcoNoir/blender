@@ -1,0 +1,53 @@
+# SysML regen-diff gate (BSML1 / SCRUM-444).
+#
+# Fast, Python-only drift guard: regenerate the SysML node family from the
+# pinned sml2c and fail if the checked-in generated files are stale. The full
+# all-kinds smoke test (the SysML unittest suite) runs in the release build
+# (release.yml), which has a built Blender to run bpy against.
+#
+# NOTE: fetching sml2c on a clean runner needs the sml2c release binaries from
+# SCRUM-453. Until those exist this gate self-skips with a warning; once they
+# ship it becomes a hard drift gate automatically (no workflow change needed).
+
+name: SysML Regen Check
+
+on:
+  push:
+    paths:
+      - "tools/sysml/**"
+      - "source/blender/nodes/sysml/**"
+      - "extern/sml2c/**"
+      - "scripts/startup/bl_ui/node_add_menu_sysml*.py"
+      - ".github/workflows/sysml-regen-check.yml"
+  pull_request:
+    paths:
+      - "tools/sysml/**"
+      - "source/blender/nodes/sysml/**"
+      - "extern/sml2c/**"
+      - "scripts/startup/bl_ui/node_add_menu_sysml*.py"
+
+jobs:
+  regen-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Regen-diff gate (pinned sml2c)
+        shell: bash
+        run: |
+          if python tools/sysml/fetch_sml2c.py; then
+            echo "Fetched pinned sml2c; checking generated files for drift..."
+            python tools/sysml/gen_sysml_nodes.py --check
+          else
+            echo "::warning title=Regen-diff skipped::sml2c release binaries are not"\
+              " published yet (pending SCRUM-453). The regen-diff gate activates"\
+              " automatically once fetch_sml2c.py can download the pinned binary."
+          fi

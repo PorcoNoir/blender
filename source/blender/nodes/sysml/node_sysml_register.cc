@@ -6,6 +6,8 @@
 
 #include "node_sysml_register.hh"
 
+#include "sysml_nodes_register.generated.hh"
+
 namespace blender {
 
 void register_sysml_nodes()
@@ -13,10 +15,8 @@ void register_sysml_nodes()
   register_node_tree_type_sysml();
   register_node_socket_type_sysml_element();
 
-  /* Element nodes (SCRUM-433). */
-  nodes::register_node_type_sysml_part_def();
-  nodes::register_node_type_sysml_part_usage();
-  nodes::register_node_type_sysml_connection_usage();
+  /* All generated element nodes (BSML1). */
+  nodes::register_generated_sysml_nodes();
 }
 
 }  // namespace blender

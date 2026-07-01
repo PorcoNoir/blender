@@ -5,12 +5,8 @@
 /** \file
  * \ingroup nodes
  *
- * SysML v2 `part def` element node (BSML0 / SCRUM-433).
- *
- * A Definition: it can contain members and specialize a supertype. Hand-written
- * to validate the node shape the BSML1 generator will later template. Custom
- * fields (short name, multiplicity) arrive with the `NodeSysMLElement` storage
- * struct in SCRUM-434; here the node carries its sockets and the standard name.
+ * AUTO-GENERATED - DO NOT EDIT.
+ * Regenerate: python tools/sysml/gen_sysml_nodes.py
  */
 
 #include "BKE_node.hh"
@@ -26,8 +22,11 @@ static void sysml_part_def_init(bNodeTree *ntree, bNode *node)
   sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "members", "Members");
-  bke::node_add_socket(
-      *ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "specializes", "Specializes");
+  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "specializes", "Specializes");
+  node->color[0] = 0.6627f;
+  node->color[1] = 0.6157f;
+  node->color[2] = 0.8314f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
 void register_node_type_sysml_part_def()
@@ -36,7 +35,7 @@ void register_node_type_sysml_part_def()
 
   sysml_node_type_base(&ntype, "SysMLNodePartDef"_ustr);
   ntype.ui_name = "Part Definition";
-  ntype.ui_description = "SysML v2 part definition (part def)";
+  ntype.ui_description = "SysML v2 part definition";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.initfunc = sysml_part_def_init;
   sysml_node_storage_register(ntype);

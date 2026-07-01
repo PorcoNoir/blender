@@ -5,11 +5,8 @@
 /** \file
  * \ingroup nodes
  *
- * SysML v2 `connection` usage element node (BSML0 / SCRUM-433).
- *
- * A connector usage linking two endpoints: wire each end's `self` output into
- * `connect` and `to` (e.g. two part usages). Optionally typed by a
- * ConnectionDef through `of`.
+ * AUTO-GENERATED - DO NOT EDIT.
+ * Regenerate: python tools/sysml/gen_sysml_nodes.py
  */
 
 #include "BKE_node.hh"
@@ -27,6 +24,10 @@ static void sysml_connection_usage_init(bNodeTree *ntree, bNode *node)
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "connect", "Connect");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "to", "To");
+  node->color[0] = 0.7882f;
+  node->color[1] = 0.4824f;
+  node->color[2] = 0.3686f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
 void register_node_type_sysml_connection_usage()
@@ -35,7 +36,7 @@ void register_node_type_sysml_connection_usage()
 
   sysml_node_type_base(&ntype, "SysMLNodeConnectionUsage"_ustr);
   ntype.ui_name = "Connection Usage";
-  ntype.ui_description = "SysML v2 connection usage (connect ... to ...)";
+  ntype.ui_description = "SysML v2 connection usage";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.initfunc = sysml_connection_usage_init;
   sysml_node_storage_register(ntype);

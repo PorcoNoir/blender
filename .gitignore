@@ -98,3 +98,7 @@ blendcache_*
 # Secrets — never track env files, even under the re-included .github/ tree.
 .env
 *.env
+
+# Fetched sml2c binaries — pinned via extern/sml2c/sml2c.lock and populated by
+# tools/sysml/fetch_sml2c.py. Never commit the binaries themselves.
+extern/sml2c/bin/

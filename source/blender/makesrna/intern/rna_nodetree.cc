@@ -10602,9 +10602,8 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("TextureNode", "TextureNodeValToRGB", def_colorramp);
   define("TextureNode", "TextureNodeViewer");
 
-  define("NodeInternal", "SysMLNodePartDef", def_sysml_element);
-  define("NodeInternal", "SysMLNodePartUsage", def_sysml_element);
-  define("NodeInternal", "SysMLNodeConnectionUsage", def_sysml_element);
+  /* Shared NodeSysMLElement storage RNA for every generated element node (BSML1). */
+#include "../../nodes/sysml/sysml_rna_defs.generated.hh"
 
   define("FunctionNode", "FunctionNodeAlignEulerToVector");
   define("FunctionNode", "FunctionNodeAlignRotationToVector");

@@ -5,11 +5,8 @@
 /** \file
  * \ingroup nodes
  *
- * SysML v2 `part` usage element node (BSML0 / SCRUM-433).
- *
- * A Usage: typed by a Definition through `of` (e.g. `part p : PartDef`), may
- * contain members and redefine an inherited feature. Wire a `PartDef`'s `self`
- * output into `of` to express the typing.
+ * AUTO-GENERATED - DO NOT EDIT.
+ * Regenerate: python tools/sysml/gen_sysml_nodes.py
  */
 
 #include "BKE_node.hh"
@@ -20,25 +17,28 @@
 
 namespace blender::nodes {
 
-static void sysml_part_usage_init(bNodeTree *ntree, bNode *node)
+static void sysml_verification_case_usage_init(bNodeTree *ntree, bNode *node)
 {
   sysml_node_storage_init(node);
   bke::node_add_socket(*ntree, *node, SOCK_OUT, "NodeSocketSysMLElement", "self", "Self");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "members", "Members");
   bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "of", "Type");
-  bke::node_add_socket(
-      *ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "redefines", "Redefines");
+  bke::node_add_socket(*ntree, *node, SOCK_IN, "NodeSocketSysMLElement", "redefines", "Redefines");
+  node->color[0] = 0.3569f;
+  node->color[1] = 0.5608f;
+  node->color[2] = 0.7255f;
+  node->flag |= NODE_CUSTOM_COLOR;  /* family accent */
 }
 
-void register_node_type_sysml_part_usage()
+void register_node_type_sysml_verification_case_usage()
 {
   static bke::bNodeType ntype;
 
-  sysml_node_type_base(&ntype, "SysMLNodePartUsage"_ustr);
-  ntype.ui_name = "Part Usage";
-  ntype.ui_description = "SysML v2 part usage (typed by a part def via 'Type')";
+  sysml_node_type_base(&ntype, "SysMLNodeVerificationCaseUsage"_ustr);
+  ntype.ui_name = "Verification Case Usage";
+  ntype.ui_description = "SysML v2 verification case usage";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.initfunc = sysml_part_usage_init;
+  ntype.initfunc = sysml_verification_case_usage_init;
   sysml_node_storage_register(ntype);
 
   bke::node_register_type(ntype);

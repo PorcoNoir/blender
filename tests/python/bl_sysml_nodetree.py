@@ -187,6 +187,12 @@ class TestSysMLAddMenu(SysMLTestCase):
         self.assertTrue(hasattr(bpy.types, "NODE_MT_sysml_node_add_all"),
                         "SysML add-menu is not registered")
 
+    def test_family_submenus_registered(self):
+        """The categorized add-menu exposes family submenus (SCRUM-442)."""
+        for slug in ("packages", "structure", "connections", "requirements", "behavior"):
+            self.assertTrue(hasattr(bpy.types, f"NODE_MT_category_sysml_{slug}"),
+                            f"missing family submenu '{slug}'")
+
 
 class TestSysMLSaveReload(SysMLTestCase):
     """The SCRUM-435 gate: a model survives a .blend save/reload round-trip."""
@@ -225,6 +231,126 @@ class TestSysMLSaveReload(SysMLTestCase):
             part_def = next(n for n in ng.nodes if n.bl_idname == PART_DEF)
             self.assertEqual(part_def.element_name, "Vehicle")
             self.assertTrue(part_def.is_abstract)
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+
+class TestSysMLGeneratedTaxonomy(SysMLTestCase):
+    """The full generated taxonomy (BSML1): every kind registers, instantiates,
+    exposes storage RNA, and a family sampling round-trips through a .blend."""
+
+    def _idnames(self):
+        return sorted(t for t in dir(bpy.types)
+                      if t.startswith("SysMLNode") and t not in ("SysMLNodeTree", "SysMLNodeGroup"))
+
+    def test_full_taxonomy_registered(self):
+        self.assertGreaterEqual(len(self._idnames()), 55,
+                                "expected the full generated SysML taxonomy (~58 kinds)")
+
+    def test_all_kinds_addable_and_rna_visible(self):
+        ng = self.new_tree()
+        for idname in self._idnames():
+            node = ng.nodes.new(idname)
+            self.assertEqual(node.bl_idname, idname)
+            self.assertTrue(hasattr(node, "element_name"), f"{idname} missing storage RNA")
+            self.assertEqual(node.outputs["Self"].bl_idname, SOCKET_IDNAME)
+
+    def test_nodes_carry_family_accent_color(self):
+        """Generated nodes get their family accent as a custom header colour (SCRUM-442)."""
+        ng = self.new_tree()
+        node = ng.nodes.new("SysMLNodePartDef")
+        self.assertTrue(node.use_custom_color, "node missing custom accent colour")
+        self.assertGreater(sum(node.color), 0.0)
+
+    def test_family_sampling_roundtrip(self):
+        sample = ["SysMLNodePartDef", "SysMLNodeRequirementUsage", "SysMLNodeActionDef",
+                  "SysMLNodeStateUsage", "SysMLNodeFlowUsage", "SysMLNodeInterfaceUsage",
+                  "SysMLNodePackage", "SysMLNodeViewDef", "SysMLNodeCalcUsage"]
+        ng = bpy.data.node_groups.new("sysml_family_mix", TREE_IDNAME)
+        ng.use_fake_user = True
+        for idname in sample:
+            ng.nodes.new(idname).element_name = idname
+
+        tmpdir = tempfile.mkdtemp(prefix="sysml_fam_")
+        path = os.path.join(tmpdir, "fam.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            ng2 = bpy.data.node_groups.get("sysml_family_mix")
+            self.assertIsNotNone(ng2, "family-mix tree did not survive save/reload")
+            got = {n.bl_idname for n in ng2.nodes}
+            for idname in sample:
+                self.assertIn(idname, got, f"{idname} lost across save/reload")
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+
+class TestSysMLForwardCompat(SysMLTestCase):
+    """SCRUM-443: the single shared NodeSysMLElement storage backs every kind,
+    and a mixed model (storage values + links) survives a .blend round-trip."""
+
+    def test_shared_storage_on_all_kinds(self):
+        ng = self.new_tree()
+        idnames = [t for t in dir(bpy.types)
+                   if t.startswith("SysMLNode") and t not in ("SysMLNodeTree", "SysMLNodeGroup")]
+        for idname in sorted(idnames):
+            node = ng.nodes.new(idname)
+            for prop in ("element_name", "short_name", "multiplicity", "is_abstract"):
+                self.assertTrue(hasattr(node, prop), f"{idname} missing storage prop '{prop}'")
+
+    def test_values_and_links_survive_roundtrip(self):
+        ng = bpy.data.node_groups.new("sysml_fc_model", TREE_IDNAME)
+        ng.use_fake_user = True
+        pdef = ng.nodes.new("SysMLNodePartDef")
+        pdef.element_name = "Vehicle"
+        pdef.short_name = "veh"
+        pdef.multiplicity = "[1]"
+        pdef.is_abstract = True
+        pusage = ng.nodes.new("SysMLNodePartUsage")
+        pusage.element_name = "myCar"
+        conn = ng.nodes.new("SysMLNodeConnectionUsage")
+        ng.links.new(pdef.outputs["Self"], pusage.inputs["Type"])
+        ng.links.new(pusage.outputs["Self"], conn.inputs["Connect"])
+
+        tmpdir = tempfile.mkdtemp(prefix="sysml_fc_")
+        path = os.path.join(tmpdir, "fc.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            ng2 = bpy.data.node_groups.get("sysml_fc_model")
+            self.assertIsNotNone(ng2, "model did not survive save/reload")
+            pdef2 = next(n for n in ng2.nodes if n.bl_idname == "SysMLNodePartDef")
+            self.assertEqual(pdef2.element_name, "Vehicle")
+            self.assertEqual(pdef2.short_name, "veh")
+            self.assertEqual(pdef2.multiplicity, "[1]")
+            self.assertTrue(pdef2.is_abstract)
+            self.assertEqual(len(ng2.links), 2, "links did not survive reload")
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+    def test_subset_file_loads(self):
+        """A file saved with only a subset of kinds still loads (forward-compat)."""
+        ng = bpy.data.node_groups.new("sysml_subset", TREE_IDNAME)
+        ng.use_fake_user = True
+        ng.nodes.new("SysMLNodePartDef")
+        tmpdir = tempfile.mkdtemp(prefix="sysml_sub_")
+        path = os.path.join(tmpdir, "sub.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            self.assertIsNotNone(bpy.data.node_groups.get("sysml_subset"))
         finally:
             try:
                 os.remove(path)
