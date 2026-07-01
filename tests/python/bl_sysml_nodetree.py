@@ -233,6 +233,53 @@ class TestSysMLSaveReload(SysMLTestCase):
                 pass
 
 
+class TestSysMLGeneratedTaxonomy(SysMLTestCase):
+    """The full generated taxonomy (BSML1): every kind registers, instantiates,
+    exposes storage RNA, and a family sampling round-trips through a .blend."""
+
+    def _idnames(self):
+        return sorted(t for t in dir(bpy.types)
+                      if t.startswith("SysMLNode") and t not in ("SysMLNodeTree", "SysMLNodeGroup"))
+
+    def test_full_taxonomy_registered(self):
+        self.assertGreaterEqual(len(self._idnames()), 55,
+                                "expected the full generated SysML taxonomy (~58 kinds)")
+
+    def test_all_kinds_addable_and_rna_visible(self):
+        ng = self.new_tree()
+        for idname in self._idnames():
+            node = ng.nodes.new(idname)
+            self.assertEqual(node.bl_idname, idname)
+            self.assertTrue(hasattr(node, "element_name"), f"{idname} missing storage RNA")
+            self.assertEqual(node.outputs["Self"].bl_idname, SOCKET_IDNAME)
+
+    def test_family_sampling_roundtrip(self):
+        sample = ["SysMLNodePartDef", "SysMLNodeRequirementUsage", "SysMLNodeActionDef",
+                  "SysMLNodeStateUsage", "SysMLNodeFlowUsage", "SysMLNodeInterfaceUsage",
+                  "SysMLNodePackage", "SysMLNodeViewDef", "SysMLNodeCalcUsage"]
+        ng = bpy.data.node_groups.new("sysml_family_mix", TREE_IDNAME)
+        ng.use_fake_user = True
+        for idname in sample:
+            ng.nodes.new(idname).element_name = idname
+
+        tmpdir = tempfile.mkdtemp(prefix="sysml_fam_")
+        path = os.path.join(tmpdir, "fam.blend").replace("\\", "/")
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=path)
+            bpy.ops.wm.open_mainfile(filepath=path)
+            ng2 = bpy.data.node_groups.get("sysml_family_mix")
+            self.assertIsNotNone(ng2, "family-mix tree did not survive save/reload")
+            got = {n.bl_idname for n in ng2.nodes}
+            for idname in sample:
+                self.assertIn(idname, got, f"{idname} lost across save/reload")
+        finally:
+            try:
+                os.remove(path)
+                os.rmdir(tmpdir)
+            except OSError:
+                pass
+
+
 def main():
     # Drop Blender's own argv so unittest only sees args after "--".
     argv = [sys.argv[0]]

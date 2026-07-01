@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# AUTO-GENERATED - DO NOT EDIT. Regenerate: python tools/sysml/gen_sysml_nodes.py
+
+set(SYSML_GENERATED_SRC
+  nodes/node_sysml_action_def.cc
+  nodes/node_sysml_action_usage.cc
+  nodes/node_sysml_alias.cc
+  nodes/node_sysml_allocation_def.cc
+  nodes/node_sysml_allocation_usage.cc
+  nodes/node_sysml_analysis_case_def.cc
+  nodes/node_sysml_analysis_case_usage.cc
+  nodes/node_sysml_attribute_def.cc
+  nodes/node_sysml_attribute_usage.cc
+  nodes/node_sysml_binding_usage.cc
+  nodes/node_sysml_calc_def.cc
+  nodes/node_sysml_calc_usage.cc
+  nodes/node_sysml_case_def.cc
+  nodes/node_sysml_case_usage.cc
+  nodes/node_sysml_comment.cc
+  nodes/node_sysml_concern_def.cc
+  nodes/node_sysml_concern_usage.cc
+  nodes/node_sysml_conjugated_port_def.cc
+  nodes/node_sysml_connection_def.cc
+  nodes/node_sysml_connection_usage.cc
+  nodes/node_sysml_constraint_def.cc
+  nodes/node_sysml_constraint_usage.cc
+  nodes/node_sysml_documentation.cc
+  nodes/node_sysml_enumeration_def.cc
+  nodes/node_sysml_enumeration_usage.cc
+  nodes/node_sysml_flow_def.cc
+  nodes/node_sysml_flow_usage.cc
+  nodes/node_sysml_import.cc
+  nodes/node_sysml_interface_def.cc
+  nodes/node_sysml_interface_usage.cc
+  nodes/node_sysml_item_def.cc
+  nodes/node_sysml_item_usage.cc
+  nodes/node_sysml_library_package.cc
+  nodes/node_sysml_metadata_def.cc
+  nodes/node_sysml_metadata_usage.cc
+  nodes/node_sysml_occurrence_def.cc
+  nodes/node_sysml_occurrence_usage.cc
+  nodes/node_sysml_package.cc
+  nodes/node_sysml_part_def.cc
+  nodes/node_sysml_part_usage.cc
+  nodes/node_sysml_port_def.cc
+  nodes/node_sysml_port_usage.cc
+  nodes/node_sysml_reference_usage.cc
+  nodes/node_sysml_rendering_def.cc
+  nodes/node_sysml_rendering_usage.cc
+  nodes/node_sysml_requirement_def.cc
+  nodes/node_sysml_requirement_usage.cc
+  nodes/node_sysml_state_def.cc
+  nodes/node_sysml_state_usage.cc
+  nodes/node_sysml_succession_usage.cc
+  nodes/node_sysml_use_case_def.cc
+  nodes/node_sysml_use_case_usage.cc
+  nodes/node_sysml_verification_case_def.cc
+  nodes/node_sysml_verification_case_usage.cc
+  nodes/node_sysml_view_def.cc
+  nodes/node_sysml_view_usage.cc
+  nodes/node_sysml_viewpoint_def.cc
+  nodes/node_sysml_viewpoint_usage.cc
+  sysml_elements.generated.hh
+  sysml_nodes_register.generated.hh
+)

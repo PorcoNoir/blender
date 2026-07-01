@@ -16,14 +16,17 @@ set(INC
 set(INC_SYS
 )
 
+# Generated per-kind element nodes (BSML1). Regenerate with
+# tools/sysml/gen_sysml_nodes.py; never hand-edit the generated files.
+include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
+
 set(SRC
-  node_sysml_connectionusage.cc
-  node_sysml_partdef.cc
-  node_sysml_partusage.cc
   node_sysml_register.cc
   node_sysml_socket.cc
   node_sysml_tree.cc
   node_sysml_util.cc
+
+  ${SYSML_GENERATED_SRC}
 
   node_sysml_register.hh
   node_sysml_util.hh

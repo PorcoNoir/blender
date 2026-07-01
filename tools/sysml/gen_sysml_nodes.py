@@ -30,6 +30,8 @@ PROBES_DIR = REPO_ROOT / "tools" / "sysml" / "probes"
 OUT_HH = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_elements.generated.hh"
 GEN_NODES_DIR = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "nodes"
 OUT_REGISTER = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_nodes_register.generated.hh"
+OUT_SOURCES = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_generated_sources.cmake"
+OUT_RNA = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_rna_defs.generated.hh"
 
 GEN_BANNER = (
     "/* SPDX-FileCopyrightText: 2026 Blender Authors\n"
@@ -327,6 +329,38 @@ def emit_node_cc(editor_id: str, entry: dict) -> str:
     return "\n".join(lines)
 
 
+def emit_rna_defs(found: dict) -> str:
+    """RNA storage-defs block: applies the shared NodeSysMLElement RNA to every
+    element node. #included inside the RNA node-registration block in
+    rna_nodetree.cc, where `define` and `def_sysml_element` are in scope."""
+    lines = [
+        "/* SPDX-FileCopyrightText: 2026 Blender Authors",
+        " *",
+        " * SPDX-License-Identifier: GPL-2.0-or-later */",
+        "",
+        "/* AUTO-GENERATED - DO NOT EDIT. Regenerate: python tools/sysml/gen_sysml_nodes.py */",
+        "",
+    ]
+    lines += [f'define("NodeInternal", "{node_idname(eid)}", def_sysml_element);' for eid in sorted(found)]
+    lines.append("")
+    return "\n".join(lines)
+
+
+def emit_sources_cmake(found: dict) -> str:
+    lines = [
+        "# SPDX-FileCopyrightText: 2026 Blender Authors",
+        "#",
+        "# SPDX-License-Identifier: GPL-2.0-or-later",
+        "#",
+        "# AUTO-GENERATED - DO NOT EDIT. Regenerate: python tools/sysml/gen_sysml_nodes.py",
+        "",
+        "set(SYSML_GENERATED_SRC",
+    ]
+    lines += [f"  nodes/node_sysml_{eid[len('sysml.'):]}.cc" for eid in sorted(found)]
+    lines += ["  sysml_elements.generated.hh", "  sysml_nodes_register.generated.hh", ")", ""]
+    return "\n".join(lines)
+
+
 def emit_register(found: dict) -> str:
     stems = [eid[len("sysml."):] for eid in sorted(found)]
     lines = [GEN_BANNER, "#pragma once", "", "namespace blender::nodes {", ""]
@@ -409,7 +443,8 @@ def main() -> None:
 
     # Full set of generated outputs (path -> text): the kind table, the
     # per-kind node source, and the registration aggregator.
-    outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found)}
+    outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found),
+               OUT_SOURCES: emit_sources_cmake(found), OUT_RNA: emit_rna_defs(found)}
     for eid in sorted(found):
         outputs[GEN_NODES_DIR / f"node_sysml_{eid[len('sysml.'):]}.cc"] = emit_node_cc(eid, found[eid])
 
