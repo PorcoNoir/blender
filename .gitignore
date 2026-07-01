@@ -92,3 +92,9 @@ compile_commands.json
 blendcache_*
 *.blend1
 *.blend2
+.github/workflows/jira_release_script.bat
+.github/workflows/jira_release_script.ps1
+
+# Secrets — never track env files, even under the re-included .github/ tree.
+.env
+*.env
