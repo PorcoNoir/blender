@@ -1,0 +1,23 @@
+{
+  "version": "0.45.4-alpha",
+  "source_repo": "PorcoNoir/sml2c",
+  "release_tag": "v0.45.4-alpha",
+  "note": "sha256 is of the extracted BINARY (not the zip). An empty sha means that platform's binary is not yet published/pinned; use `fetch_sml2c.py --from-local PATH` until the sml2c release pipeline ships per-OS assets.",
+  "platforms": {
+    "windows": {
+      "exe": "sml2c.exe",
+      "asset": "sml2c-0.45.4-alpha-windows-x64.zip",
+      "sha256": "8391987655279104d85fc77ef9c4717724dfc0cb2007db64e32562acae7a583c"
+    },
+    "linux": {
+      "exe": "sml2c",
+      "asset": "sml2c-0.45.4-alpha-linux-x64.zip",
+      "sha256": ""
+    },
+    "macos": {
+      "exe": "sml2c",
+      "asset": "sml2c-0.45.4-alpha-macos-arm64.zip",
+      "sha256": ""
+    }
+  }
+}
