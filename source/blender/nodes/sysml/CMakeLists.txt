@@ -21,6 +21,7 @@ set(INC_SYS
 include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
 
 set(SRC
+  intern/sml2c_bridge.cc
   node_sysml_register.cc
   node_sysml_socket.cc
   node_sysml_tree.cc
@@ -28,6 +29,7 @@ set(SRC
 
   ${SYSML_GENERATED_SRC}
 
+  intern/sml2c_bridge.hh
   node_sysml_register.hh
   node_sysml_util.hh
 )
@@ -46,3 +48,19 @@ blender_add_lib(bf_nodes_sysml "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.hh
 add_dependencies(bf_nodes_sysml bf_rna)
+
+# Ship the pinned sml2c next to the Blender executable at runtime, mirroring how
+# Blender installs its runtime library dependencies. Build-time the binary lives
+# under the fetched/pinned extern/sml2c/ (populate via tools/sysml/fetch_sml2c.py);
+# the bridge (intern/sml2c_bridge.cc) then resolves it relative to the program dir.
+if(WIN32)
+  set(_SML2C_RUNTIME ${CMAKE_SOURCE_DIR}/extern/sml2c/bin/windows/sml2c.exe)
+elseif(APPLE)
+  set(_SML2C_RUNTIME ${CMAKE_SOURCE_DIR}/extern/sml2c/bin/macos/sml2c)
+else()
+  set(_SML2C_RUNTIME ${CMAKE_SOURCE_DIR}/extern/sml2c/bin/linux/sml2c)
+endif()
+if(EXISTS ${_SML2C_RUNTIME})
+  install(PROGRAMS ${_SML2C_RUNTIME} DESTINATION "." COMPONENT Libraries)
+endif()
+unset(_SML2C_RUNTIME)
