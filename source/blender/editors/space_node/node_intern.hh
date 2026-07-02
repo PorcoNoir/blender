@@ -402,6 +402,9 @@ void NODE_OT_select_grouped(wmOperatorType *ot);
 void NODE_OT_select_same_type_step(wmOperatorType *ot);
 void NODE_OT_find_node(wmOperatorType *ot);
 
+/* `node_sysml_import.cc` */
+void NODE_OT_sysml_import(wmOperatorType *ot);
+
 /* `node_view.cc` */
 
 bool space_node_view_flag(

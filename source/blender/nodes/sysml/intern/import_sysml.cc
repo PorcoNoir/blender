@@ -16,6 +16,9 @@
 
 #include "import_sysml.hh"
 #include "layout_sysml.hh"
+#include "sml2c_bridge.hh"
+
+#include "NOD_sysml_import.hh"
 
 #include <cstring>
 #include <unordered_map>
@@ -217,6 +220,32 @@ int import_sysml_ast_json(const bContext *C,
   wire_pass(tree, records, by_name, r_report);
   layout_sysml_tree(tree);
   return count;
+}
+
+int import_sysml_file(const bContext *C,
+                      bNodeTree &tree,
+                      StringRefNull filepath,
+                      std::string &r_report)
+{
+  const Sml2cResult res = run_emit_json(filepath);
+  if (!res.ok) {
+    if (!res.error.empty()) {
+      r_report += res.error;
+      r_report += "\n";
+    }
+    if (!res.diagnostics.empty()) {
+      r_report += res.diagnostics;
+    }
+    if (res.error.empty() && res.diagnostics.empty()) {
+      r_report += "sml2c failed (exit " + std::to_string(res.exit_code) + ")\n";
+    }
+    return -1;
+  }
+  /* Surface warnings even on a successful compile. */
+  if (!res.diagnostics.empty()) {
+    r_report += res.diagnostics;
+  }
+  return import_sysml_ast_json(C, tree, res.output, r_report);
 }
 
 }  // namespace blender::nodes::sysml

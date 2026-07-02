@@ -36,6 +36,8 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_find_node);
 
+  WM_operatortype_append(NODE_OT_sysml_import);
+
   WM_operatortype_append(NODE_OT_view_all);
   WM_operatortype_append(NODE_OT_view_selected);
 
