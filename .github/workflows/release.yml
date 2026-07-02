@@ -92,10 +92,17 @@ jobs:
 
       - name: Smoke-test + run SysML node suite
         shell: cmd
-        # Fail the release if the SysML feature tests regress.
+        # Fail the release if the SysML feature tests regress. Covers the node
+        # tree/nodes (BSML1), end-to-end import, and the tutorial-corpus import
+        # fidelity gate (BSML2). sml2c is installed next to blender.exe by the
+        # install step, so the import/corpus gates run for real here.
         run: >
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
-          --python tests\python\bl_sysml_nodetree.py
+          --python tests\python\bl_sysml_nodetree.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_import.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_corpus.py
 
       - name: Package install tree
         shell: pwsh
