@@ -222,6 +222,15 @@ def apply_overrides(found: dict) -> None:
     for eid, (cont, usage, spec) in FALLBACK_KINDS.items():
         found.setdefault(
             eid, {"is_container": cont, "is_usage": usage, "can_specialize": spec, "source": "fallback"})
+    # BSML3 (SCRUM-496): every SysML v2 definition can own nested features (a
+    # part def nests parts, an enumeration def its literals, an item def its
+    # attributes, ...). Our import wires all containment through the `members`
+    # socket, so a def without one drops its nested features on import — and they
+    # can't round-trip. Force every `_def` to be a container; this supersedes any
+    # override above that marked a definition non-container (e.g. enumeration_def).
+    for eid, entry in found.items():
+        if eid.endswith("_def"):
+            entry["is_container"] = True
 
 
 def node_idname(editor_id: str) -> str:
