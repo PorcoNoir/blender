@@ -56,6 +56,7 @@ inline const char *sysml_import_idname(std::string_view kind, std::string_view d
     if (def_kind == "ConcernDef") return "SysMLNodeConcernUsage";
     if (def_kind == "ConnectionDef") return "SysMLNodeConnectionUsage";
     if (def_kind == "ConstraintDef") return "SysMLNodeConstraintUsage";
+    if (def_kind == "End") return "SysMLNodeReferenceUsage";
     if (def_kind == "EnumDef") return "SysMLNodeEnumerationUsage";
     if (def_kind == "FlowDef") return "SysMLNodeFlowUsage";
     if (def_kind == "IndividualDef") return "SysMLNodePartUsage";
@@ -65,6 +66,7 @@ inline const char *sysml_import_idname(std::string_view kind, std::string_view d
     if (def_kind == "OccurrenceDef") return "SysMLNodeOccurrenceUsage";
     if (def_kind == "PartDef") return "SysMLNodePartUsage";
     if (def_kind == "PortDef") return "SysMLNodePortUsage";
+    if (def_kind == "ReferenceUsage") return "SysMLNodeReferenceUsage";
     if (def_kind == "RenderingDef") return "SysMLNodeRenderingUsage";
     if (def_kind == "RequirementDef") return "SysMLNodeRequirementUsage";
     if (def_kind == "StateDef") return "SysMLNodeStateUsage";

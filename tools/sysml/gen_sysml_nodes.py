@@ -85,6 +85,12 @@ DEFKIND_TO_STEM = {
     "ConjugatedPortDef": "conjugated_port",
     "VerificationCaseDef": "verification_case",
     "AnalysisCaseDef": "analysis_case",
+    # Reference usages: sml2c tags a feature end (`end ports : PowerOutPort`) as
+    # defKind "End" and an explicit `ref x` as "ReferenceUsage" — both are
+    # reference usages. Without these the feature is dropped on import (and the
+    # exported `ref x` would not round-trip back to a node).
+    "End": "reference",
+    "ReferenceUsage": "reference",
 }
 
 # Top-level kinds that don't follow Definition/Usage + defKind.
