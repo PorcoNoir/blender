@@ -15,6 +15,7 @@
  */
 
 #include "import_sysml.hh"
+#include "layout_sysml.hh"
 
 #include <cstring>
 #include <unordered_map>
@@ -214,6 +215,7 @@ int import_sysml_ast_json(const bContext *C,
   int count = 0;
   create_pass(C, tree, ast, nullptr, records, by_name, count, r_report);
   wire_pass(tree, records, by_name, r_report);
+  layout_sysml_tree(tree);
   return count;
 }
 

@@ -23,6 +23,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
 
 set(SRC
   intern/import_sysml.cc
+  intern/layout_sysml.cc
   intern/sml2c_bridge.cc
   node_sysml_register.cc
   node_sysml_socket.cc
@@ -32,6 +33,7 @@ set(SRC
   ${SYSML_GENERATED_SRC}
 
   intern/import_sysml.hh
+  intern/layout_sysml.hh
   intern/sml2c_bridge.hh
   node_sysml_register.hh
   node_sysml_util.hh
