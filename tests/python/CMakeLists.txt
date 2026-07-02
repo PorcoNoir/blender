@@ -335,6 +335,20 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_nodetree.py
 )
 
+# BSML2 — end-to-end .sysml import (SCRUM-450). Skips at runtime when the sml2c
+# binary is not available next to the executable.
+add_blender_test(
+  bl_sysml_import
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_import.py
+)
+
+# BSML2 exit gate — tutorial-corpus import fidelity (SCRUM-451). Same runtime
+# skip when sml2c is unavailable.
+add_blender_test(
+  bl_sysml_corpus
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_corpus.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

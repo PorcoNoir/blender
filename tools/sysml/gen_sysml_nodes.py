@@ -33,6 +33,7 @@ OUT_REGISTER = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_nod
 OUT_SOURCES = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_generated_sources.cmake"
 OUT_RNA = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_rna_defs.generated.hh"
 OUT_MENU = REPO_ROOT / "scripts" / "startup" / "bl_ui" / "node_add_menu_sysml_generated.py"
+OUT_IMPORT_MAP = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_import_kindmap.generated.hh"
 
 GEN_BANNER = (
     "/* SPDX-FileCopyrightText: 2026 Blender Authors\n"
@@ -386,6 +387,39 @@ def emit_rna_defs(found: dict) -> str:
     return "\n".join(lines)
 
 
+def emit_import_kindmap(found: dict) -> str:
+    """sml2c AST (kind, defKind) -> SysML node idname, for the importer
+    (SCRUM-447). Only maps kinds that have a registered node."""
+    def_rows, usage_rows = [], []
+    for defkind, stem in sorted(DEFKIND_TO_STEM.items()):
+        if f"sysml.{stem}_def" in found:
+            def_rows.append((defkind, node_idname(f"sysml.{stem}_def")))
+        if f"sysml.{stem}_usage" in found:
+            usage_rows.append((defkind, node_idname(f"sysml.{stem}_usage")))
+    lines = [
+        GEN_BANNER,
+        "#pragma once",
+        "",
+        "#include <string_view>",
+        "",
+        "namespace blender::nodes::sysml {",
+        "",
+        "/* sml2c AST (kind, defKind) -> SysML node idname; empty when unmapped. */",
+        "inline const char *sysml_import_idname(std::string_view kind, std::string_view def_kind)",
+        "{",
+        '  if (kind == "Definition") {',
+    ]
+    lines += [f'    if (def_kind == "{dk}") return "{idn}";' for dk, idn in def_rows]
+    lines += ["  }", '  if (kind == "Usage") {']
+    lines += [f'    if (def_kind == "{dk}") return "{idn}";' for dk, idn in usage_rows]
+    lines += ["  }"]
+    for k, eid in SPECIAL_KIND_TO_EDITOR.items():
+        if eid and eid in found:
+            lines.append(f'  if (kind == "{k}") return "{node_idname(eid)}";')
+    lines += ['  return "";', "}", "", "}  // namespace blender::nodes::sysml", ""]
+    return "\n".join(lines)
+
+
 def emit_menu_module(found: dict) -> str:
     """Add-menu families as Python data for node_add_menu_sysml.py: each family
     lists its (idname, ui_name) with defs before usages."""
@@ -514,7 +548,7 @@ def main() -> None:
     # per-kind node source, and the registration aggregator.
     outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found),
                OUT_SOURCES: emit_sources_cmake(found), OUT_RNA: emit_rna_defs(found),
-               OUT_MENU: emit_menu_module(found)}
+               OUT_MENU: emit_menu_module(found), OUT_IMPORT_MAP: emit_import_kindmap(found)}
     for eid in sorted(found):
         outputs[GEN_NODES_DIR / f"node_sysml_{eid[len('sysml.'):]}.cc"] = emit_node_cc(eid, found[eid])
 
