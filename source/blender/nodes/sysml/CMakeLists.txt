@@ -9,6 +9,7 @@ set(INC
   ../../blenlib
   ../../editors/include
   ../../makesrna
+  ${CMAKE_SOURCE_DIR}/extern/json/include
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -21,6 +22,7 @@ set(INC_SYS
 include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
 
 set(SRC
+  intern/import_sysml.cc
   intern/sml2c_bridge.cc
   node_sysml_register.cc
   node_sysml_socket.cc
@@ -29,6 +31,7 @@ set(SRC
 
   ${SYSML_GENERATED_SRC}
 
+  intern/import_sysml.hh
   intern/sml2c_bridge.hh
   node_sysml_register.hh
   node_sysml_util.hh
