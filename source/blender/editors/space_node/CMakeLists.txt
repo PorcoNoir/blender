@@ -45,6 +45,7 @@ set(SRC
   node_shader_preview.cc
   node_socket_tooltip.cc
   node_sync_sockets.cc
+  node_sysml_export.cc
   node_sysml_import.cc
   node_templates.cc
   node_tree_interface_ui.cc

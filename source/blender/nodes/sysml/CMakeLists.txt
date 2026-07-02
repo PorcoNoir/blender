@@ -23,6 +23,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
 
 set(SRC
   intern/export_model.cc
+  intern/export_notation.cc
   intern/import_sysml.cc
   intern/layout_sysml.cc
   intern/sml2c_bridge.cc

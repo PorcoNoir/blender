@@ -349,6 +349,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_corpus.py
 )
 
+# BSML3 — notation export re-parses through sml2c (SCRUM-498). Same runtime skip.
+add_blender_test(
+  bl_sysml_export
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

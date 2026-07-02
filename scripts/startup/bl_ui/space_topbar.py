@@ -417,6 +417,8 @@ class TOPBAR_MT_file_export(Menu):
         if bpy.app.build_options.io_stl:
             self.layout.operator("wm.stl_export", text="STL (.stl)")
 
+        self.layout.operator("node.sysml_export", text="SysML (.sysml)")
+
 
 class TOPBAR_MT_file_external_data(Menu):
     bl_label = "External Data"
