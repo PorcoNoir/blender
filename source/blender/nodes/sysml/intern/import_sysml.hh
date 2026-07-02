@@ -6,9 +6,10 @@
  * \ingroup nodes
  *
  * Import a validated sml2c AST (`--emit-json`) into SysML nodes
- * (BSML2 / SCRUM-447). This half creates one node per element and populates its
- * fields; relationship edges (`members`/`of`/…) and auto-layout are wired in
- * SCRUM-448 / SCRUM-449. Port of the node-creation half of `astToGraph.ts`.
+ * (BSML2). Creates one node per element and populates its fields (SCRUM-447),
+ * then wires the relationship sockets — `members`/`of`/`specializes`/
+ * `redefines`/connector ends (SCRUM-448). Auto-layout follows in SCRUM-449.
+ * Port of `astToGraph.ts`.
  */
 
 #pragma once
