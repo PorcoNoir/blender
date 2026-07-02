@@ -84,11 +84,11 @@ void layout_sysml_tree(bNodeTree &tree)
 
   std::unordered_set<const bNode *> visited;
   float root_y = START_Y;
-  for (bNode *node : tree.all_nodes()) {
-    if (has_parent.find(node) != has_parent.end()) {
+  for (bNode &node : tree.nodes) {
+    if (has_parent.find(&node) != has_parent.end()) {
       continue; /* placed as part of its parent's subtree */
     }
-    const float placed_bottom = place(*node, START_X, root_y, children_of, visited);
+    const float placed_bottom = place(node, START_X, root_y, children_of, visited);
     root_y = placed_bottom + V_GUTTER + SUBTREE_GUTTER;
   }
 }
