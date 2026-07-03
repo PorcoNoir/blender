@@ -373,6 +373,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_ops.py
 )
 
+# BSML3 exit gate — text <-> graph <-> .py round-trip agree (SCRUM-502).
+add_blender_test(
+  bl_sysml_bsml3_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml3_exit.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
