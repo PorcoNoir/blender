@@ -28,6 +28,13 @@ from bl_ui.sysml_geometry_shapes_generated import SHAPE_RESOLVER
 SHAPE_KEY = "sysml_shape"
 DIM_PREFIX = "sysml_dim_"
 
+# CSG: a shape-bearing node combines its own primitive (the base) with operand
+# objects (referenced by SysML element name) via Boolean modifiers. Mirrors the
+# standard library's differencesOf / unionsOf / intersectionsOf.
+CSG_KEY = "sysml_csg"
+CSG_OPERANDS_KEY = "sysml_csg_operands"
+CSG_OP = {"difference": 'DIFFERENCE', "union": 'UNION', "intersect": 'INTERSECT'}
+
 
 def shape_of(node):
     """The resolved shape name carried by `node`, or None."""
@@ -70,10 +77,13 @@ def materialize_tree(tree):
         bpy.data.objects.remove(obj)
 
     node_to_obj = {}
+    by_element = {}
     for node in tree.nodes:
         obj = _make_object(node)
         if obj is not None:
             node_to_obj[node.name] = obj
+            if node.element_name:
+                by_element[node.element_name] = obj
 
     # Parent per containment: a `members` link runs child.self -> parent.members.
     for link in tree.links:
@@ -85,7 +95,33 @@ def materialize_tree(tree):
             child.parent = parent
             child.matrix_parent_inverse = parent.matrix_world.inverted()
 
+    _apply_csg(tree, node_to_obj, by_element)
     return len(node_to_obj)
+
+
+def _apply_csg(tree, node_to_obj, by_element):
+    """Add Boolean modifiers to CSG-carrier objects; hide the operand cutters."""
+    for node in tree.nodes:
+        op = node.get(CSG_KEY)
+        if op not in CSG_OP:
+            continue
+        result = node_to_obj.get(node.name)
+        if result is None:
+            continue
+        for operand_name in (n.strip() for n in node.get(CSG_OPERANDS_KEY, "").split(",")):
+            target = by_element.get(operand_name)
+            if target is None or target is result:
+                continue
+            modifier = result.modifiers.new(name=f"SysML CSG {operand_name}", type='BOOLEAN')
+            modifier.operation = CSG_OP[op]
+            modifier.object = target
+            # The cutter is consumed by the boolean: hide it and group it under
+            # the result so it travels with it.
+            target.hide_viewport = True
+            target.hide_render = True
+            if target.parent is None:
+                target.parent = result
+                target.matrix_parent_inverse = result.matrix_world.inverted()
 
 
 class NODE_OT_sysml_materialize(bpy.types.Operator):

@@ -403,6 +403,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_materialize.py
 )
 
+# Geometry Binding A — CSG -> Boolean modifiers (SCRUM-628).
+add_blender_test(
+  bl_sysml_csg
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_csg.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
