@@ -391,6 +391,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry_shapes.py
 )
 
+# Geometry Binding A — node <-> object binding data model (SCRUM-626).
+add_blender_test(
+  bl_sysml_binding
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_binding.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
