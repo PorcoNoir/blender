@@ -33,4 +33,13 @@ int export_sysml_notation_file(const bNodeTree &tree,
                                StringRefNull filepath,
                                std::string &r_report);
 
+/** Emit a bpy graph-builder `.py` that rebuilds `tree` (SCRUM-500). */
+std::string export_sysml_bpy(const bNodeTree &tree);
+
+/**
+ * Emit the bpy graph-builder for `tree` to `filepath`. Returns the number of
+ * nodes it will build, or -1 on a write error (message in `r_report`).
+ */
+int export_sysml_bpy_file(const bNodeTree &tree, StringRefNull filepath, std::string &r_report);
+
 }  // namespace blender::nodes::sysml

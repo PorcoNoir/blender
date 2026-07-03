@@ -407,6 +407,7 @@ void NODE_OT_sysml_import(wmOperatorType *ot);
 
 /* `node_sysml_export.cc` */
 void NODE_OT_sysml_export(wmOperatorType *ot);
+void NODE_OT_sysml_export_bpy(wmOperatorType *ot);
 
 /* `node_view.cc` */
 

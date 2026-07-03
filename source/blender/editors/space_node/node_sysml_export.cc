@@ -5,10 +5,11 @@
 /** \file
  * \ingroup spnode
  *
- * File -> Export -> SysML (.sysml) operator (BSML3 / SCRUM-498). Writes a
- * SysML node tree back out as canonical `.sysml` notation. Exports the active
- * SysML editor's tree, or the tree named by the `tree_name` property (so it is
- * scriptable / testable headless). Registered as `NODE_OT_sysml_export`.
+ * File -> Export -> SysML operators (BSML3 / SCRUM-498, SCRUM-500). Write a
+ * SysML node tree back out as canonical `.sysml` notation (`NODE_OT_sysml_export`)
+ * or as a bpy graph-builder `.py` (`NODE_OT_sysml_export_bpy`). Both export the
+ * active SysML editor's tree, or the tree named by the `tree_name` property (so
+ * they are scriptable / testable headless).
  */
 
 #include <string>
@@ -36,19 +37,11 @@
 
 namespace blender::ed::space_node {
 
-static wmOperatorStatus sysml_export_exec(bContext *C, wmOperator *op)
+/* The tree to export: an explicit `tree_name` (scripting / tests) wins,
+ * otherwise the active SysML editor's tree. Reports and returns null on miss. */
+static bNodeTree *resolve_export_tree(bContext *C, wmOperator *op)
 {
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-  if (filepath[0] == '\0') {
-    BKE_report(op->reports, RPT_ERROR, "No file path given");
-    return OPERATOR_CANCELLED;
-  }
-
   Main *bmain = CTX_data_main(C);
-
-  /* An explicit tree name wins (scripting / tests); otherwise the active
-   * SysML editor's tree. */
   bNodeTree *tree = nullptr;
   char tree_name[MAX_ID_NAME - 2];
   RNA_string_get(op->ptr, "tree_name", tree_name);
@@ -60,6 +53,58 @@ static wmOperatorStatus sysml_export_exec(bContext *C, wmOperator *op)
   }
   if (tree == nullptr || tree->type != NTREE_SYSML) {
     BKE_report(op->reports, RPT_ERROR, "No SysML node tree to export");
+    return nullptr;
+  }
+  return tree;
+}
+
+static bool export_filepath(wmOperator *op, char r_filepath[FILE_MAX])
+{
+  RNA_string_get(op->ptr, "filepath", r_filepath);
+  if (r_filepath[0] == '\0') {
+    BKE_report(op->reports, RPT_ERROR, "No file path given");
+    return false;
+  }
+  return true;
+}
+
+static wmOperatorStatus export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  /* WM_operator_filesel runs exec directly when a filepath is already set. */
+  return WM_operator_filesel(C, op, event);
+}
+
+static void export_filesel_props(wmOperatorType *ot, const char *glob)
+{
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER,
+                                 FILE_SPECIAL,
+                                 FILE_SAVE,
+                                 WM_FILESEL_FILEPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", glob, 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_string(ot->srna,
+                        "tree_name",
+                        nullptr,
+                        MAX_ID_NAME - 2,
+                        "Tree",
+                        "SysML node tree to export (defaults to the active editor's tree)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Notation (.sysml) */
+
+static wmOperatorStatus sysml_export_exec(bContext *C, wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  if (!export_filepath(op, filepath)) {
+    return OPERATOR_CANCELLED;
+  }
+  bNodeTree *tree = resolve_export_tree(C, op);
+  if (tree == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -69,7 +114,6 @@ static wmOperatorStatus sysml_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, report.empty() ? "SysML export failed" : report.c_str());
     return OPERATOR_CANCELLED;
   }
-
   BKE_reportf(op->reports,
               RPT_INFO,
               "Exported %d SysML element%s to %s",
@@ -79,41 +123,59 @@ static wmOperatorStatus sysml_export_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus sysml_export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-    return sysml_export_exec(C, op);
-  }
-  return WM_operator_filesel(C, op, event);
-}
-
 void NODE_OT_sysml_export(wmOperatorType *ot)
 {
   ot->name = "Export SysML";
   ot->description = "Export the SysML node graph as canonical .sysml text";
   ot->idname = "NODE_OT_sysml_export";
 
-  ot->invoke = sysml_export_invoke;
+  ot->invoke = export_invoke;
   ot->exec = sysml_export_exec;
-
   ot->flag = OPTYPE_REGISTER;
 
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER,
-                                 FILE_SPECIAL,
-                                 FILE_SAVE,
-                                 WM_FILESEL_FILEPATH,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
-  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.sysml", 0, "", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-  prop = RNA_def_string(ot->srna,
-                        "tree_name",
-                        nullptr,
-                        MAX_ID_NAME - 2,
-                        "Tree",
-                        "SysML node tree to export (defaults to the active editor's tree)");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  export_filesel_props(ot, "*.sysml");
+}
+
+/* -------------------------------------------------------------------------- */
+/* bpy graph-builder (.py) */
+
+static wmOperatorStatus sysml_export_bpy_exec(bContext *C, wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  if (!export_filepath(op, filepath)) {
+    return OPERATOR_CANCELLED;
+  }
+  bNodeTree *tree = resolve_export_tree(C, op);
+  if (tree == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  std::string report;
+  const int count = nodes::sysml::export_sysml_bpy_file(*tree, filepath, report);
+  if (count < 0) {
+    BKE_report(op->reports, RPT_ERROR, report.empty() ? "SysML bpy export failed" : report.c_str());
+    return OPERATOR_CANCELLED;
+  }
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              "Exported a bpy builder for %d SysML node%s to %s",
+              count,
+              count == 1 ? "" : "s",
+              BLI_path_basename(filepath));
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_sysml_export_bpy(wmOperatorType *ot)
+{
+  ot->name = "Export SysML as bpy";
+  ot->description = "Export the SysML node graph as a bpy graph-builder Python script";
+  ot->idname = "NODE_OT_sysml_export_bpy";
+
+  ot->invoke = export_invoke;
+  ot->exec = sysml_export_bpy_exec;
+  ot->flag = OPTYPE_REGISTER;
+
+  export_filesel_props(ot, "*.py");
 }
 
 }  // namespace blender::ed::space_node

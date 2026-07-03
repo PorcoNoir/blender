@@ -22,6 +22,7 @@ set(INC_SYS
 include(${CMAKE_CURRENT_SOURCE_DIR}/sysml_generated_sources.cmake)
 
 set(SRC
+  intern/export_bpy.cc
   intern/export_model.cc
   intern/export_notation.cc
   intern/import_sysml.cc

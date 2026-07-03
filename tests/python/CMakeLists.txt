@@ -361,6 +361,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_roundtrip.py
 )
 
+# BSML3 — bpy graph-builder export rebuilds the graph (SCRUM-500). Same runtime skip.
+add_blender_test(
+  bl_sysml_export_bpy
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_bpy.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
