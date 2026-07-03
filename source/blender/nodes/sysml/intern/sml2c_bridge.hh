@@ -49,7 +49,18 @@ struct Sml2cResult {
 std::string sml2c_binary_path();
 
 /**
- * Run `sml2c <emit_flag> <sysml_path>`, capturing stdout, stderr, and exit code.
+ * Resolve the bundled minimal SysML standard library (Geometry `ShapeItems` /
+ * `SpatialItems`), so parts that specialize `SpatialItem` / type a `shape`
+ * resolve. Lookup order: the `SML2C_STDLIB` environment variable, then
+ * `<blender program dir>/sysml-stdlib` (installed next to the executable).
+ * Empty when none exists (sml2c then uses its synthetic stub). Passed to sml2c
+ * as `--stdlib-path`.
+ */
+std::string sml2c_stdlib_path();
+
+/**
+ * Run `sml2c [--stdlib-path <dir>] <emit_flag> <sysml_path>`, capturing stdout,
+ * stderr, and exit code. `emit_flag` is the literal CLI flag, e.g. "--emit-json".
  * `emit_flag` is the literal CLI flag, e.g. "--emit-json".
  */
 Sml2cResult sml2c_run(StringRefNull emit_flag, StringRefNull sysml_path);

@@ -379,6 +379,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml3_exit.py
 )
 
+# Geometry Binding A — bundled Geometry standard library resolves (SCRUM-624).
+add_blender_test(
+  bl_sysml_geometry
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

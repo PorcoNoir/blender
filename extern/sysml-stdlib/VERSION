@@ -1,0 +1,6 @@
+blender-sml-geometry-stdlib 0.1.0
+
+Minimal, parseable subset of the OMG SysML v2 Geometry Domain Library, pinned for
+the geometry binding (SCRUM-624). Derived from the standard library shipped with
+sml2c 0.45.4-alpha; trimmed to the solid starter set that the pinned sml2c can
+parse and that the binding maps to Blender mesh primitives.

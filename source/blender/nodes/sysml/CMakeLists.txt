@@ -73,3 +73,11 @@ if(EXISTS ${_SML2C_RUNTIME})
   install(PROGRAMS ${_SML2C_RUNTIME} DESTINATION "." COMPONENT Libraries)
 endif()
 unset(_SML2C_RUNTIME)
+
+# Ship the bundled minimal SysML standard library (Geometry ShapeItems /
+# SpatialItems) next to the executable as `sysml-stdlib/`, so the bridge can
+# pass it to sml2c via --stdlib-path and parts resolve against real library
+# types (SCRUM-624). Committed source, unlike the sml2c binary.
+if(EXISTS ${CMAKE_SOURCE_DIR}/extern/sysml-stdlib)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/extern/sysml-stdlib DESTINATION "." COMPONENT Libraries)
+endif()
