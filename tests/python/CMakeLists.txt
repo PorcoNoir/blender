@@ -397,6 +397,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_binding.py
 )
 
+# Geometry Binding A — materialize graph -> Blender objects (SCRUM-627).
+add_blender_test(
+  bl_sysml_materialize
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_materialize.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
