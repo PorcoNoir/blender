@@ -349,6 +349,36 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_corpus.py
 )
 
+# BSML3 — notation export re-parses through sml2c (SCRUM-498). Same runtime skip.
+add_blender_test(
+  bl_sysml_export
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export.py
+)
+
+# BSML3 — notation round-trip fidelity (SCRUM-499). Same runtime skip.
+add_blender_test(
+  bl_sysml_roundtrip
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_roundtrip.py
+)
+
+# BSML3 — bpy graph-builder export rebuilds the graph (SCRUM-500). Same runtime skip.
+add_blender_test(
+  bl_sysml_export_bpy
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_bpy.py
+)
+
+# BSML3 — export operators + File > Export menu surface (SCRUM-501).
+add_blender_test(
+  bl_sysml_export_ops
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_ops.py
+)
+
+# BSML3 exit gate — text <-> graph <-> .py round-trip agree (SCRUM-502).
+add_blender_test(
+  bl_sysml_bsml3_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml3_exit.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

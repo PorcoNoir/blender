@@ -34,6 +34,7 @@ OUT_SOURCES = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_gene
 OUT_RNA = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_rna_defs.generated.hh"
 OUT_MENU = REPO_ROOT / "scripts" / "startup" / "bl_ui" / "node_add_menu_sysml_generated.py"
 OUT_IMPORT_MAP = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_import_kindmap.generated.hh"
+OUT_NOTATION = REPO_ROOT / "source" / "blender" / "nodes" / "sysml" / "sysml_notation_keywords.generated.hh"
 
 GEN_BANNER = (
     "/* SPDX-FileCopyrightText: 2026 Blender Authors\n"
@@ -84,6 +85,12 @@ DEFKIND_TO_STEM = {
     "ConjugatedPortDef": "conjugated_port",
     "VerificationCaseDef": "verification_case",
     "AnalysisCaseDef": "analysis_case",
+    # Reference usages: sml2c tags a feature end (`end ports : PowerOutPort`) as
+    # defKind "End" and an explicit `ref x` as "ReferenceUsage" — both are
+    # reference usages. Without these the feature is dropped on import (and the
+    # exported `ref x` would not round-trip back to a node).
+    "End": "reference",
+    "ReferenceUsage": "reference",
 }
 
 # Top-level kinds that don't follow Definition/Usage + defKind.
@@ -222,6 +229,15 @@ def apply_overrides(found: dict) -> None:
     for eid, (cont, usage, spec) in FALLBACK_KINDS.items():
         found.setdefault(
             eid, {"is_container": cont, "is_usage": usage, "can_specialize": spec, "source": "fallback"})
+    # BSML3 (SCRUM-496): every SysML v2 definition can own nested features (a
+    # part def nests parts, an enumeration def its literals, an item def its
+    # attributes, ...). Our import wires all containment through the `members`
+    # socket, so a def without one drops its nested features on import — and they
+    # can't round-trip. Force every `_def` to be a container; this supersedes any
+    # override above that marked a definition non-container (e.g. enumeration_def).
+    for eid, entry in found.items():
+        if eid.endswith("_def"):
+            entry["is_container"] = True
 
 
 def node_idname(editor_id: str) -> str:
@@ -244,6 +260,57 @@ SUBJECT_KINDS = {"requirement"}                               # `subject` wire
 # Definitions are specializable and carry a `specializes` socket, EXCEPT these:
 # enum defs aren't specializable; conjugated ports wire an `original` instead.
 NO_SPECIALIZE_DEFS = {"enumeration", "conjugated_port"}
+
+# editor-id -> canonical SysML surface keyword, ported from notation.ts
+# NOTATION_KEYWORDS (BSML3 / SCRUM-498). Kinds not listed fall back to a keyword
+# derived from the stem (see notation_keyword). Used by export_notation.cc.
+NOTATION_KEYWORDS = {
+    "sysml.package": "package", "sysml.library_package": "library package",
+    "sysml.part_def": "part def", "sysml.attribute_def": "attribute def",
+    "sysml.enumeration_def": "enum def", "sysml.port_def": "port def",
+    "sysml.conjugated_port_def": "port def", "sysml.interface_def": "interface def",
+    "sysml.connection_def": "connection def", "sysml.allocation_def": "allocation def",
+    "sysml.flow_def": "flow def", "sysml.item_def": "item def",
+    "sysml.occurrence_def": "occurrence def", "sysml.constraint_def": "constraint def",
+    "sysml.metadata_def": "metadata def", "sysml.requirement_def": "requirement def",
+    "sysml.concern_def": "concern def", "sysml.action_def": "action def",
+    "sysml.state_def": "state def", "sysml.calc_def": "calc def",
+    "sysml.view_def": "view def", "sysml.viewpoint_def": "viewpoint def",
+    "sysml.rendering_def": "rendering def", "sysml.case_def": "case def",
+    "sysml.analysis_case_def": "analysis case def",
+    "sysml.verification_case_def": "verification case def",
+    "sysml.use_case_def": "use case def", "sysml.part_usage": "part",
+    "sysml.attribute_usage": "attribute", "sysml.enumeration_usage": "enum",
+    "sysml.port_usage": "port", "sysml.item_usage": "item",
+    "sysml.connection_usage": "connection", "sysml.interface_usage": "interface",
+    "sysml.allocation_usage": "allocation", "sysml.satisfy_def": "satisfy",
+    "sysml.satisfy_usage": "satisfy", "sysml.flow_usage": "flow",
+    "sysml.binding_usage": "bind", "sysml.succession_usage": "succession",
+    "sysml.action_usage": "action", "sysml.state_usage": "state",
+    "sysml.calc_usage": "calc", "sysml.constraint_usage": "constraint",
+    "sysml.requirement_usage": "requirement", "sysml.concern_usage": "concern",
+    "sysml.case_usage": "case", "sysml.analysis_case_usage": "analysis case",
+    "sysml.verification_case_usage": "verification case",
+    "sysml.use_case_usage": "use case", "sysml.view_usage": "view",
+    "sysml.viewpoint_usage": "viewpoint", "sysml.rendering_usage": "rendering",
+    "sysml.metadata_usage": "metadata", "sysml.reference_usage": "ref",
+    "sysml.occurrence_usage": "occurrence",
+    "sysml.event_occurrence_usage": "event occurrence",
+    "sysml.snapshot_usage": "snapshot", "sysml.timeslice_usage": "timeslice",
+    "sysml.import": "import", "sysml.alias": "alias",
+    "sysml.comment": "comment", "sysml.documentation": "doc",
+}
+
+
+def notation_keyword(eid: str) -> str:
+    if eid in NOTATION_KEYWORDS:
+        return NOTATION_KEYWORDS[eid]
+    stem = eid[len("sysml."):]
+    if stem.endswith("_def"):
+        return stem[:-4].replace("_", " ") + " def"
+    if stem.endswith("_usage"):
+        return stem[:-6].replace("_", " ")
+    return stem.replace("_", " ")
 
 # Add-menu families + accent colours (ported from the editor's ACCENT map in
 # src/nodes/sysml.ts). Every kind's base stem maps to one family.
@@ -420,6 +487,27 @@ def emit_import_kindmap(found: dict) -> str:
     return "\n".join(lines)
 
 
+def emit_notation_keywords(found: dict) -> str:
+    """SysML node idname -> canonical notation keyword, for export_notation.cc
+    (SCRUM-498). Ports notation.ts's NOTATION_KEYWORDS onto our node idnames."""
+    rows = [(node_idname(eid), notation_keyword(eid)) for eid in sorted(found)]
+    lines = [
+        GEN_BANNER,
+        "#pragma once",
+        "",
+        "#include <string_view>",
+        "",
+        "namespace blender::nodes::sysml {",
+        "",
+        "/* SysML node idname -> canonical notation keyword; empty when unknown. */",
+        "inline const char *sysml_notation_keyword(std::string_view idname)",
+        "{",
+    ]
+    lines += [f'  if (idname == "{idn}") return "{kw}";' for idn, kw in rows]
+    lines += ['  return "";', "}", "", "}  // namespace blender::nodes::sysml", ""]
+    return "\n".join(lines)
+
+
 def emit_menu_module(found: dict) -> str:
     """Add-menu families as Python data for node_add_menu_sysml.py: each family
     lists its (idname, ui_name) with defs before usages."""
@@ -548,7 +636,8 @@ def main() -> None:
     # per-kind node source, and the registration aggregator.
     outputs = {OUT_HH: emit_hh(found, version), OUT_REGISTER: emit_register(found),
                OUT_SOURCES: emit_sources_cmake(found), OUT_RNA: emit_rna_defs(found),
-               OUT_MENU: emit_menu_module(found), OUT_IMPORT_MAP: emit_import_kindmap(found)}
+               OUT_MENU: emit_menu_module(found), OUT_IMPORT_MAP: emit_import_kindmap(found),
+               OUT_NOTATION: emit_notation_keywords(found)}
     for eid in sorted(found):
         outputs[GEN_NODES_DIR / f"node_sysml_{eid[len('sysml.'):]}.cc"] = emit_node_cc(eid, found[eid])
 

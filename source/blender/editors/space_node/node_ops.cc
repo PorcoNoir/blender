@@ -37,6 +37,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_find_node);
 
   WM_operatortype_append(NODE_OT_sysml_import);
+  WM_operatortype_append(NODE_OT_sysml_export);
+  WM_operatortype_append(NODE_OT_sysml_export_bpy);
 
   WM_operatortype_append(NODE_OT_view_all);
   WM_operatortype_append(NODE_OT_view_selected);

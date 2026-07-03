@@ -43,8 +43,8 @@ BASELINE = {
     "03_specialization.sysml": {"nodes": 4,  "links": 6},
     "04_usages.sysml":         {"nodes": 7,  "links": 8},
     "05_multiplicity.sysml":   {"nodes": 7,  "links": 9},
-    "06_magical_bag.sysml":    {"nodes": 7,  "links": 7},
-    "all-kinds.sysml":         {"nodes": 45, "links": 64},
+    "06_magical_bag.sysml":    {"nodes": 8,  "links": 10},
+    "all-kinds.sysml":         {"nodes": 45, "links": 66},
 }
 
 
