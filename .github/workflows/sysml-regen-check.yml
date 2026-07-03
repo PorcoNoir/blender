@@ -46,6 +46,7 @@ jobs:
           if python tools/sysml/fetch_sml2c.py; then
             echo "Fetched pinned sml2c; checking generated files for drift..."
             python tools/sysml/gen_sysml_nodes.py --check
+            python tools/sysml/gen_geometry_shapes.py --check
           else
             echo "::warning title=Regen-diff skipped::sml2c release binaries are not"\
               " published yet (pending SCRUM-453). The regen-diff gate activates"\
