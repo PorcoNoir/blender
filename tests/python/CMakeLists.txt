@@ -367,6 +367,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_bpy.py
 )
 
+# BSML3 — export operators + File > Export menu surface (SCRUM-501).
+add_blender_test(
+  bl_sysml_export_ops
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_export_ops.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

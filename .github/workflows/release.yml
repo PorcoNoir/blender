@@ -108,7 +108,9 @@ jobs:
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_roundtrip.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
-          --python tests\python\bl_sysml_export_bpy.py
+          --python tests\python\bl_sysml_export_bpy.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_export_ops.py
 
       - name: Package install tree
         shell: pwsh
