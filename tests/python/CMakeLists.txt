@@ -409,6 +409,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_csg.py
 )
 
+# Geometry Binding A — ISQ units <-> Blender scene units (SCRUM-629).
+add_blender_test(
+  bl_sysml_units
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_units.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

@@ -24,6 +24,7 @@ import bpy
 
 from bl_ui.sysml_binding import TREE_KEY, bind, object_for_node
 from bl_ui.sysml_geometry_shapes_generated import SHAPE_RESOLVER
+from bl_ui.sysml_units import UNIT_KEY, DEFAULT_UNIT, to_blender_length
 
 SHAPE_KEY = "sysml_shape"
 DIM_PREFIX = "sysml_dim_"
@@ -43,7 +44,10 @@ def shape_of(node):
 
 
 def _dims(node):
-    return {key[len(DIM_PREFIX):]: float(node[key])
+    """Dimension attribute -> length in Blender units (unit-converted)."""
+    unit = node.get(UNIT_KEY, DEFAULT_UNIT)
+    scene = bpy.context.scene
+    return {key[len(DIM_PREFIX):]: to_blender_length(node[key], unit, scene)
             for key in node.keys() if key.startswith(DIM_PREFIX)}
 
 
