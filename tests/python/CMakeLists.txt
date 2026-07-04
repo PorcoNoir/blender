@@ -379,6 +379,54 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml3_exit.py
 )
 
+# Geometry Binding A — bundled Geometry standard library resolves (SCRUM-624).
+add_blender_test(
+  bl_sysml_geometry
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry.py
+)
+
+# Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
+add_blender_test(
+  bl_sysml_geometry_shapes
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry_shapes.py
+)
+
+# Geometry Binding A — node <-> object binding data model (SCRUM-626).
+add_blender_test(
+  bl_sysml_binding
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_binding.py
+)
+
+# Geometry Binding A — materialize graph -> Blender objects (SCRUM-627).
+add_blender_test(
+  bl_sysml_materialize
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_materialize.py
+)
+
+# Geometry Binding A — CSG -> Boolean modifiers (SCRUM-628).
+add_blender_test(
+  bl_sysml_csg
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_csg.py
+)
+
+# Geometry Binding A — ISQ units <-> Blender scene units (SCRUM-629).
+add_blender_test(
+  bl_sysml_units
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_units.py
+)
+
+# Geometry Binding A — reverse Blender objects -> SysML nodes (SCRUM-630).
+add_blender_test(
+  bl_sysml_reverse
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_reverse.py
+)
+
+# Geometry Binding A exit gate — graph <-> 3D <-> graph round-trip (SCRUM-631).
+add_blender_test(
+  bl_sysml_geometry_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry_exit.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py

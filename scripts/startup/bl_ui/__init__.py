@@ -19,6 +19,7 @@ _modules = [
     "node_add_menu_shader",
     "node_add_menu_sysml",
     "node_add_menu_texture",
+    "sysml_geometry",
     "properties_animviz",
     "properties_constraint",
     "properties_data_armature",

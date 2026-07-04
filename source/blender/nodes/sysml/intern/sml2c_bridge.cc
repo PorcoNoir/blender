@@ -58,6 +58,21 @@ std::string sml2c_binary_path()
   return "";
 }
 
+std::string sml2c_stdlib_path()
+{
+  if (const char *env = std::getenv("SML2C_STDLIB")) {
+    if (env[0] != '\0' && BLI_exists(env)) {
+      return env;
+    }
+  }
+  char path[1024];
+  BLI_path_join(path, sizeof(path), BKE_appdir_program_dir(), "sysml-stdlib");
+  if (BLI_exists(path)) {
+    return path;
+  }
+  return "";
+}
+
 static std::string read_text_file(const char *path)
 {
   std::ifstream f(path, std::ios::binary);
@@ -80,6 +95,9 @@ Sml2cResult sml2c_run(StringRefNull emit_flag, StringRefNull sysml_path)
         "sml2c binary not found. Set $SML2C, or install sml2c next to the Blender executable.";
     return result;
   }
+  /* Resolve library-defined types (SpatialItem, shapes) against the bundled
+   * minimal standard library when present. */
+  const std::string stdlib = sml2c_stdlib_path();
 
   /* Unique temp files to capture stdout/stderr (atomic counter guards against
    * overlapping invocations sharing a name). */
@@ -110,8 +128,11 @@ Sml2cResult sml2c_run(StringRefNull emit_flag, StringRefNull sysml_path)
   si.hStdOutput = h_out;
   si.hStdError = h_err;
 
-  std::string cmd = "\"" + bin + "\" " + std::string(emit_flag.c_str()) + " \"" +
-                    std::string(sysml_path.c_str()) + "\"";
+  std::string cmd = "\"" + bin + "\"";
+  if (!stdlib.empty()) {
+    cmd += " --stdlib-path \"" + stdlib + "\"";
+  }
+  cmd += " " + std::string(emit_flag.c_str()) + " \"" + std::string(sysml_path.c_str()) + "\"";
   std::vector<char> cmd_buf(cmd.begin(), cmd.end());
   cmd_buf.push_back('\0');
 
@@ -146,12 +167,17 @@ Sml2cResult sml2c_run(StringRefNull emit_flag, StringRefNull sysml_path)
 
   const std::string flag_s = emit_flag.c_str();
   const std::string path_s = sysml_path.c_str();
-  char *argv[] = {const_cast<char *>(bin.c_str()),
-                  const_cast<char *>(flag_s.c_str()),
-                  const_cast<char *>(path_s.c_str()),
-                  nullptr};
+  std::vector<char *> argv;
+  argv.push_back(const_cast<char *>(bin.c_str()));
+  if (!stdlib.empty()) {
+    argv.push_back(const_cast<char *>("--stdlib-path"));
+    argv.push_back(const_cast<char *>(stdlib.c_str()));
+  }
+  argv.push_back(const_cast<char *>(flag_s.c_str()));
+  argv.push_back(const_cast<char *>(path_s.c_str()));
+  argv.push_back(nullptr);
   pid_t pid;
-  const int rc = posix_spawn(&pid, bin.c_str(), &actions, nullptr, argv, environ);
+  const int rc = posix_spawn(&pid, bin.c_str(), &actions, nullptr, argv.data(), environ);
   close(out_fd);
   close(err_fd);
   posix_spawn_file_actions_destroy(&actions);
