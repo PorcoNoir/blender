@@ -421,6 +421,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_reverse.py
 )
 
+# Geometry Binding A exit gate — graph <-> 3D <-> graph round-trip (SCRUM-631).
+add_blender_test(
+  bl_sysml_geometry_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry_exit.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
