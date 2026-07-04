@@ -124,7 +124,9 @@ jobs:
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_csg.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
-          --python tests\python\bl_sysml_units.py
+          --python tests\python\bl_sysml_units.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_reverse.py
 
       - name: Package install tree
         shell: pwsh

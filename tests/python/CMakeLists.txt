@@ -415,6 +415,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_units.py
 )
 
+# Geometry Binding A — reverse Blender objects -> SysML nodes (SCRUM-630).
+add_blender_test(
+  bl_sysml_reverse
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_reverse.py
+)
+
 add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
