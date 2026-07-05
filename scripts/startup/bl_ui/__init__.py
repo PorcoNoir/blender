@@ -21,6 +21,7 @@ _modules = [
     "node_add_menu_texture",
     "sysml_animate",
     "sysml_armature",
+    "sysml_behavior",
     "sysml_geometry",
     "properties_animviz",
     "properties_constraint",

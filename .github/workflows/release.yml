@@ -128,6 +128,8 @@ jobs:
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_keyframes.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_behavior.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_geometry_shapes.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_binding.py &&

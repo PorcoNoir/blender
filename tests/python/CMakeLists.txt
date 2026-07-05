@@ -421,6 +421,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_keyframes.py
 )
 
+# Animation Binding A — states/successions -> Actions / NLA strips (SCRUM-650).
+add_blender_test(
+  bl_sysml_behavior
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_behavior.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
