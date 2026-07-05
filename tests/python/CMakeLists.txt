@@ -415,6 +415,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_constraints.py
 )
 
+# Animation Binding A — Occurrence snapshots -> bone pose keyframes (SCRUM-649).
+add_blender_test(
+  bl_sysml_keyframes
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_keyframes.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
