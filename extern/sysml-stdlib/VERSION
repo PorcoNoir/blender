@@ -1,6 +1,13 @@
-blender-sml-geometry-stdlib 0.1.0
+blender-sml-stdlib 0.2.0
 
-Minimal, parseable subset of the OMG SysML v2 Geometry Domain Library, pinned for
-the geometry binding (SCRUM-624). Derived from the standard library shipped with
-sml2c 0.45.4-alpha; trimmed to the solid starter set that the pinned sml2c can
-parse and that the binding maps to Blender mesh primitives.
+Minimal, parseable subset of the OMG SysML v2 standard library, pinned for the
+Blender-SML bindings. Derived from the standard library shipped with sml2c
+0.45.4-alpha; trimmed to what the pinned sml2c can parse and what the bindings
+consume.
+
+Contents:
+  Geometry/  — ShapeItems (solid starter set) + SpatialItems, for the geometry
+               binding (SCRUM-624). Maps to Blender mesh primitives.
+  Time/      — Occurrences (Occurrence / snapshots / timeSlices) + Time (Clock /
+               TimeInstant), for the animation binding (SCRUM-644). Maps to
+               Blender keyframes / actions.

@@ -385,6 +385,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry.py
 )
 
+# Animation Binding A — bundled Occurrences/Time standard library resolves (SCRUM-644).
+add_blender_test(
+  bl_sysml_animation_lib
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_lib.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
