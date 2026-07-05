@@ -403,6 +403,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bone_binding.py
 )
 
+# Animation Binding A — rig graph -> Blender armature (SCRUM-647).
+add_blender_test(
+  bl_sysml_rig
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_rig.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
