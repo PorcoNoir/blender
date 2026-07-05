@@ -391,6 +391,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_lib.py
 )
 
+# Animation Binding A — SysML time <-> Blender frames bridge (SCRUM-645).
+add_blender_test(
+  bl_sysml_time
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_time.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
