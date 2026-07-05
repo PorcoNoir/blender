@@ -26,12 +26,68 @@ from bl_ui.sysml_bone_binding import (
 _DEFAULT_HEAD = (0.0, 0.0, 0.0)
 _DEFAULT_TAIL = (0.0, 0.0, 1.0)
 
+# A ConnectionUsage between two bone-parts becomes a pose-bone constraint. The
+# node carries the Blender constraint type in `sysml_constraint`; its connect/from
+# end owns the constraint and its `to` end is the target. IK for a chain end,
+# Copy-Transforms / Damped-Track for a simple joint.
+CONSTRAINT_KEY = "sysml_constraint"
+DEFAULT_CONSTRAINT = "COPY_TRANSFORMS"
+CONSTRAINT_TYPES = {
+    "COPY_TRANSFORMS", "COPY_LOCATION", "COPY_ROTATION", "COPY_SCALE",
+    "IK", "DAMPED_TRACK", "TRACK_TO", "STRETCH_TO", "LIMIT_DISTANCE",
+}
+_FIRST_END_SOCKETS = ("connect", "from")
+_CONSTRAINT_PREFIX = "SysML "
+
 
 def _find_rig_armature(tree):
     for obj in bpy.data.objects:
         if obj.type == 'ARMATURE' and obj.get(ARM_TREE_KEY) == tree:
             return obj
     return None
+
+
+def _wired_bone(tree, node, socket_ids, node_to_bone):
+    """Bone name wired into `node` on any of `socket_ids` (the connector ends)."""
+    for link in tree.links:
+        if link.to_node == node and link.to_socket.identifier in socket_ids:
+            bone = node_to_bone.get(link.from_node.name)
+            if bone:
+                return bone
+    return None
+
+
+def _apply_constraints(tree, arm, node_to_bone):
+    """Realise connection nodes as pose-bone constraints. Returns the count.
+
+    A connection node carries the Blender constraint type in `sysml_constraint`;
+    its connect/from end owns the constraint and its `to` end is the target bone.
+    Pose bones (and their constraints) survive the edit-bone rebuild by name, so
+    we drop our previously-authored constraints first to stay idempotent.
+    """
+    for pbone in arm.pose.bones:
+        for con in [c for c in pbone.constraints if c.name.startswith(_CONSTRAINT_PREFIX)]:
+            pbone.constraints.remove(con)
+
+    made = 0
+    for node in tree.nodes:
+        ctype = node.get(CONSTRAINT_KEY)
+        if not ctype:
+            continue
+        ctype = ctype if ctype in CONSTRAINT_TYPES else DEFAULT_CONSTRAINT
+        owner_bone = _wired_bone(tree, node, _FIRST_END_SOCKETS, node_to_bone)
+        target_bone = _wired_bone(tree, node, ("to",), node_to_bone)
+        if not owner_bone or not target_bone or owner_bone == target_bone:
+            continue
+        pbone = arm.pose.bones.get(owner_bone)
+        if pbone is None:
+            continue
+        con = pbone.constraints.new(type=ctype)
+        con.name = _CONSTRAINT_PREFIX + (node.element_name or node.name)
+        con.target = arm
+        con.subtarget = target_bone
+        made += 1
+    return made
 
 
 def rig_tree(tree):
@@ -74,6 +130,9 @@ def rig_tree(tree):
         bone_name = node_to_bone.get(node.name)
         if bone_name and bone_name in arm.data.bones:
             bind_bone(node, arm, arm.data.bones[bone_name])
+
+    # Connections between bone-parts become pose-bone constraints (joints / IK).
+    _apply_constraints(tree, arm, node_to_bone)
 
     return len(node_to_bone)
 
