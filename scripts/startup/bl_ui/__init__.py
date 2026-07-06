@@ -28,6 +28,7 @@ _modules = [
     "sysml_text",
     "sysml_validate",
     "sysml_geometry",
+    "sysml_library",
     "properties_animviz",
     "properties_constraint",
     "properties_data_armature",

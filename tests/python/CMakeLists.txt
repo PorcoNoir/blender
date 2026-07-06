@@ -505,6 +505,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_stdlib_index.py
 )
 
+# BSML5 — in-editor library browser (insert library-typed elements) (SCRUM-676).
+add_blender_test(
+  bl_sysml_library
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_library.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
