@@ -23,6 +23,8 @@ _modules = [
     "sysml_armature",
     "sysml_behavior",
     "sysml_capture",
+    "sysml_methodology",
+    "sysml_sync",
     "sysml_geometry",
     "properties_animviz",
     "properties_constraint",
