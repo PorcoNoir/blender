@@ -451,6 +451,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_methodology.py
 )
 
+# Animation Binding B exit gate — live-sync round-trip (SCRUM-655).
+add_blender_test(
+  bl_sysml_animation_b_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_b_exit.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
