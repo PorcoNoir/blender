@@ -40,6 +40,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Kind-category table drift (pure Python, no sml2c)
+        shell: bash
+        # Derived from the committed node taxonomy, so this gate always runs —
+        # it needs no sml2c binary.
+        run: python tools/sysml/gen_kind_category.py --check
+
       - name: Regen-diff gate (pinned sml2c)
         shell: bash
         # sml2c is a private repo, so fetching its release asset needs a token
