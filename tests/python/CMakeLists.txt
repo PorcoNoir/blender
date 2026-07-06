@@ -457,6 +457,48 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_b_exit.py
 )
 
+# BSML4 — sml2c diagnostics bridge (parse findings) (SCRUM-662).
+add_blender_test(
+  bl_sysml_diagnostics
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_diagnostics.py
+)
+
+# BSML4 — local structural checks (allowedChildren / multiplicity / abstract) (SCRUM-663).
+add_blender_test(
+  bl_sysml_structure
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_structure.py
+)
+
+# BSML4 — diagnostics on nodes (badges + panel + validate operator) (SCRUM-664).
+add_blender_test(
+  bl_sysml_validate
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_validate.py
+)
+
+# BSML4 — SysML Text datablock -> nodes (parse on demand) (SCRUM-665).
+add_blender_test(
+  bl_sysml_text
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_text.py
+)
+
+# BSML4 — nodes -> SysML Text datablock (serialize on demand) (SCRUM-666).
+add_blender_test(
+  bl_sysml_nodes_to_text
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_nodes_to_text.py
+)
+
+# BSML4 — Text <-> tree binding + on-demand round-trip (SCRUM-667).
+add_blender_test(
+  bl_sysml_text_binding
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_text_binding.py
+)
+
+# BSML4 exit gate — Text round-trip + live diagnostics (SCRUM-668).
+add_blender_test(
+  bl_sysml_bsml4_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml4_exit.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
