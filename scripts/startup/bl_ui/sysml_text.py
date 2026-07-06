@@ -29,6 +29,39 @@ class SysMLParseError(ValueError):
     """A SysML source string did not resolve cleanly."""
 
 
+# --- Text <-> tree binding ----------------------------------------------------
+# Both a Text and a NodeTree are ID datablocks, so the link is a managed ID
+# custom property on each side (mirrors the geometry/animation binding): it
+# survives .blend save/reload and auto-nulls when either side is deleted.
+
+TREE_TEXT_KEY = "sysml_text"   # on the tree -> its bound Text datablock
+TEXT_TREE_KEY = "sysml_tree"   # on the text -> its bound node tree
+
+
+def bind_text(tree, text):
+    """Link `tree` and `text` as two views of one model."""
+    tree[TREE_TEXT_KEY] = text
+    text[TEXT_TREE_KEY] = tree
+
+
+def unbind_text(tree):
+    text = tree.get(TREE_TEXT_KEY)
+    if text is not None and TEXT_TREE_KEY in text:
+        del text[TEXT_TREE_KEY]
+    if TREE_TEXT_KEY in tree:
+        del tree[TREE_TEXT_KEY]
+
+
+def bound_text(tree):
+    """The Text datablock bound to `tree`, or None."""
+    return tree.get(TREE_TEXT_KEY)
+
+
+def bound_tree(text):
+    """The node tree bound to `text`, or None."""
+    return text.get(TEXT_TREE_KEY)
+
+
 def _basename(text):
     name = text.name
     if name.lower().endswith(".sysml"):
@@ -119,6 +152,125 @@ class NODE_OT_sysml_text_to_nodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def sync_to_text(tree):
+    """Serialize `tree` into its bound Text datablock (in place)."""
+    text = bound_text(tree)
+    if text is None:
+        raise SysMLParseError("tree is not bound to a text")
+    return nodes_to_text(tree, text.name)
+
+
+def sync_from_text(text):
+    """Re-parse `text` into its bound tree, preserving the tree's name + binding.
+
+    Native import produces a new tree, so the old bound tree is replaced by the
+    freshly parsed one under the same name. Parsing happens before the old tree
+    is removed, so a parse error leaves the existing tree untouched.
+    """
+    old = bound_tree(text)
+    new = text_to_nodes(text)  # raises on parse error -> old tree preserved
+    if old is not None:
+        name = old.name
+        bpy.data.node_groups.remove(old)
+        new.name = name
+    bind_text(new, text)
+    return new
+
+
+class NODE_OT_sysml_bind_text(bpy.types.Operator):
+    """Bind a SysML tree and a Text datablock as two views"""
+    bl_idname = "node.sysml_bind_text"
+    bl_label = "Bind SysML Text"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    tree_name: bpy.props.StringProperty(options={'SKIP_SAVE'})
+    text_name: bpy.props.StringProperty(
+        name="Text",
+        description="Text datablock to bind (serialized from the tree if empty)",
+        options={'SKIP_SAVE'},
+    )
+
+    def execute(self, context):
+        tree = None
+        if self.tree_name:
+            tree = bpy.data.node_groups.get(self.tree_name)
+        elif getattr(context.space_data, "edit_tree", None):
+            tree = context.space_data.edit_tree
+        if tree is None or tree.bl_idname != _TREE_IDNAME:
+            self.report({'ERROR'}, "No SysML node tree to bind")
+            return {'CANCELLED'}
+        if self.text_name:
+            text = bpy.data.texts.get(self.text_name)
+            if text is None:
+                self.report({'ERROR'}, f"No text '{self.text_name}'")
+                return {'CANCELLED'}
+            bind_text(tree, text)
+        else:
+            try:
+                text = nodes_to_text(tree)  # serialize + create <tree>.sysml
+            except SysMLParseError as exc:
+                self.report({'ERROR'}, f"SysML export error: {exc}")
+                return {'CANCELLED'}
+            bind_text(tree, text)
+        self.report({'INFO'}, f"Bound '{tree.name}' <-> '{text.name}'")
+        return {'FINISHED'}
+
+
+class NODE_OT_sysml_sync_to_text(bpy.types.Operator):
+    """Update the bound Text datablock from the SysML graph"""
+    bl_idname = "node.sysml_sync_to_text"
+    bl_label = "Sync SysML to Text"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    tree_name: bpy.props.StringProperty(options={'SKIP_SAVE'})
+
+    def execute(self, context):
+        tree = None
+        if self.tree_name:
+            tree = bpy.data.node_groups.get(self.tree_name)
+        elif getattr(context.space_data, "edit_tree", None):
+            tree = context.space_data.edit_tree
+        if tree is None or tree.bl_idname != _TREE_IDNAME:
+            self.report({'ERROR'}, "No SysML node tree")
+            return {'CANCELLED'}
+        try:
+            text = sync_to_text(tree)
+        except SysMLParseError as exc:
+            self.report({'ERROR'}, f"Sync failed: {exc}")
+            return {'CANCELLED'}
+        self.report({'INFO'}, f"Synced to '{text.name}'")
+        return {'FINISHED'}
+
+
+class NODE_OT_sysml_sync_from_text(bpy.types.Operator):
+    """Re-parse the bound Text datablock into its SysML graph"""
+    bl_idname = "node.sysml_sync_from_text"
+    bl_label = "Sync SysML from Text"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    text_name: bpy.props.StringProperty(options={'SKIP_SAVE'})
+
+    def execute(self, context):
+        text = None
+        if self.text_name:
+            text = bpy.data.texts.get(self.text_name)
+        elif getattr(context.space_data, "text", None):
+            text = context.space_data.text
+        if text is None:
+            self.report({'ERROR'}, "No SysML text")
+            return {'CANCELLED'}
+        if bound_tree(text) is None:
+            self.report({'ERROR'}, "Text is not bound to a tree")
+            return {'CANCELLED'}
+        try:
+            tree = sync_from_text(text)
+        except SysMLParseError as exc:
+            self.report({'ERROR'}, f"SysML parse error: {exc}")
+            return {'CANCELLED'}
+        self.report({'INFO'}, f"Synced '{text.name}' -> {len(tree.nodes)} nodes")
+        return {'FINISHED'}
+
+
 class NODE_OT_sysml_nodes_to_text(bpy.types.Operator):
     """Serialize the SysML graph into a Text datablock"""
     bl_idname = "node.sysml_nodes_to_text"
@@ -153,4 +305,7 @@ class NODE_OT_sysml_nodes_to_text(bpy.types.Operator):
 classes = (
     NODE_OT_sysml_text_to_nodes,
     NODE_OT_sysml_nodes_to_text,
+    NODE_OT_sysml_bind_text,
+    NODE_OT_sysml_sync_to_text,
+    NODE_OT_sysml_sync_from_text,
 )

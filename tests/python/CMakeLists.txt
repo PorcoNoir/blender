@@ -487,6 +487,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_nodes_to_text.py
 )
 
+# BSML4 — Text <-> tree binding + on-demand round-trip (SCRUM-667).
+add_blender_test(
+  bl_sysml_text_binding
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_text_binding.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
