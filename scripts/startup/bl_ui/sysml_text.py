@@ -65,6 +65,30 @@ def text_to_nodes(text):
     return new[0]
 
 
+def nodes_to_text(tree, text_name=None):
+    """Serialize `tree` to canonical SysML in a Text datablock.
+
+    The datablock is named after the tree (``<tree>.sysml``) unless `text_name`
+    is given, and is reused/updated in place on re-run rather than duplicated.
+    Returns the Text datablock.
+    """
+    name = text_name or (tree.name + ".sysml")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "model.sysml")
+        result = bpy.ops.node.sysml_export(filepath=path, tree_name=tree.name)
+        if 'FINISHED' not in result or not os.path.exists(path):
+            raise SysMLParseError("export failed")
+        with open(path, encoding="utf-8") as fh:
+            content = fh.read()
+
+    text = bpy.data.texts.get(name)
+    if text is None:
+        text = bpy.data.texts.new(name)
+    text.clear()
+    text.write(content)
+    return text
+
+
 class NODE_OT_sysml_text_to_nodes(bpy.types.Operator):
     """Parse a SysML Text datablock into a node graph"""
     bl_idname = "node.sysml_text_to_nodes"
@@ -95,6 +119,38 @@ class NODE_OT_sysml_text_to_nodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class NODE_OT_sysml_nodes_to_text(bpy.types.Operator):
+    """Serialize the SysML graph into a Text datablock"""
+    bl_idname = "node.sysml_nodes_to_text"
+    bl_label = "SysML Nodes to Text"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    tree_name: bpy.props.StringProperty(options={'SKIP_SAVE'})
+    text_name: bpy.props.StringProperty(
+        name="Text",
+        description="Target Text datablock (defaults to <tree>.sysml)",
+        options={'SKIP_SAVE'},
+    )
+
+    def execute(self, context):
+        tree = None
+        if self.tree_name:
+            tree = bpy.data.node_groups.get(self.tree_name)
+        elif getattr(context.space_data, "edit_tree", None):
+            tree = context.space_data.edit_tree
+        if tree is None or tree.bl_idname != _TREE_IDNAME:
+            self.report({'ERROR'}, "No SysML node tree to serialize")
+            return {'CANCELLED'}
+        try:
+            text = nodes_to_text(tree, self.text_name or None)
+        except SysMLParseError as exc:
+            self.report({'ERROR'}, f"SysML export error: {exc}")
+            return {'CANCELLED'}
+        self.report({'INFO'}, f"Wrote '{text.name}'")
+        return {'FINISHED'}
+
+
 classes = (
     NODE_OT_sysml_text_to_nodes,
+    NODE_OT_sysml_nodes_to_text,
 )
