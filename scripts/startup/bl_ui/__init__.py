@@ -22,6 +22,7 @@ _modules = [
     "sysml_animate",
     "sysml_armature",
     "sysml_behavior",
+    "sysml_capture",
     "sysml_geometry",
     "properties_animviz",
     "properties_constraint",
