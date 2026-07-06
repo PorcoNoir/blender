@@ -17,7 +17,10 @@ extern/sml2c/bin/<os>/sml2c  --emit-json  tools/sysml/probes/*.sysml
 ```bash
 # 1. Get the pinned sml2c (binaries are gitignored, never committed):
 python tools/sysml/fetch_sml2c.py                    # download the pinned release + verify sha256
-python tools/sysml/fetch_sml2c.py --from-local PATH  # or copy a local build (until sml2c ships releases)
+python tools/sysml/fetch_sml2c.py --from-local PATH  # or copy a local build (for an unreleased sml2c)
+
+# sml2c is a private repo, so the download authenticates: `gh` (if signed in) is
+# tried first, else GH_TOKEN / GITHUB_TOKEN from the environment.
 
 # 2. Regenerate the table:
 python tools/sysml/gen_sysml_nodes.py
