@@ -1,9 +1,15 @@
-blender-sml-stdlib 0.2.0
+blender-sml-stdlib 0.3.0
 
 Minimal, parseable subset of the OMG SysML v2 standard library, pinned for the
-Blender-SML bindings. Derived from the standard library shipped with sml2c
-0.45.4-alpha; trimmed to what the pinned sml2c can parse and what the bindings
-consume.
+Blender-SML bindings. Derived from the standard library shipped with sml2c;
+trimmed to what the pinned sml2c can parse and what the bindings consume.
+
+Only the *domain* libraries are shipped here — the foundational packages
+(ScalarValues, Quantities, ISQ, SI) are compiled into sml2c and resolve without
+bundling (re-shipping them collides, E0203). The full set of resolvable packages
+(bundled + built-in) is catalogued in scripts/startup/bl_ui/
+sysml_stdlib_index_generated.py (generate: tools/sysml/gen_stdlib_index.py),
+which drives the in-editor library browser (SCRUM-676).
 
 Contents:
   Geometry/  — ShapeItems (solid starter set) + SpatialItems, for the geometry

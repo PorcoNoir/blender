@@ -499,6 +499,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml4_exit.py
 )
 
+# BSML5 — standard-library index (builtin + bundled catalog) (SCRUM-675).
+add_blender_test(
+  bl_sysml_stdlib_index
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_stdlib_index.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
