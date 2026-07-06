@@ -25,6 +25,7 @@ _modules = [
     "sysml_capture",
     "sysml_methodology",
     "sysml_sync",
+    "sysml_validate",
     "sysml_geometry",
     "properties_animviz",
     "properties_constraint",
