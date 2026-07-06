@@ -445,6 +445,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_sync.py
 )
 
+# Animation Binding B — guided rigging/animation methodology operators (SCRUM-654).
+add_blender_test(
+  bl_sysml_methodology
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_methodology.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
