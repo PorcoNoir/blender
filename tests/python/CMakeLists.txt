@@ -475,6 +475,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_validate.py
 )
 
+# BSML4 — SysML Text datablock -> nodes (parse on demand) (SCRUM-665).
+add_blender_test(
+  bl_sysml_text
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_text.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
