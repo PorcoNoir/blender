@@ -7,7 +7,7 @@
  *
  * AUTO-GENERATED - DO NOT EDIT.
  * Regenerate: python tools/sysml/gen_sysml_nodes.py
- * sml2c version:  sml2c 0.45.4-alpha
+ * sml2c version:  sml2c 0.46.0-alpha
  * Element kinds:  58  (41 harvested from sml2c, 17 fallback-seeded)
  *
  * X-macro table of SysML element kinds driving node registration. Each row:

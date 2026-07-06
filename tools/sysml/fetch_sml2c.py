@@ -3,14 +3,17 @@
 
 Pins live in extern/sml2c/sml2c.lock (version + per-platform SHA-256 of the
 *binary*). The binaries are never committed to source — this script (run by a
-developer, by CI, or by the release-packaging step) populates them on demand.
+developer, by CI, or by the release-packaging step) populates them on demand
+from the sml2c GitHub release assets.
 
   python tools/sysml/fetch_sml2c.py                     # download the pinned release + verify
   python tools/sysml/fetch_sml2c.py --from-local PATH   # copy a locally-built sml2c + verify
   python tools/sysml/fetch_sml2c.py --check             # verify the already-present binary
 
-Until the sml2c repo ships release binaries, use --from-local pointing at a
-local sml2c build (e.g. M:/sysml-utils/sml2c/bin/sml2c.exe).
+Windows assets are .zip, linux/macos are .tar.gz; each archive holds the full
+sml2c toolchain, and only the sml2c/sml2c.exe binary is extracted. Use
+--from-local (pointing at a local sml2c build) only when working against an
+unreleased build.
 """
 
 from __future__ import annotations
@@ -20,7 +23,9 @@ import hashlib
 import json
 import os
 import shutil
+import subprocess
 import sys
+import tarfile
 import tempfile
 import urllib.request
 import zipfile
@@ -44,6 +49,73 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _download_asset(data: dict, entry: dict, dest_dir: Path) -> Path:
+    """Fetch the release asset into `dest_dir`, returning its path.
+
+    sml2c may be a private repo, so try the authenticated `gh` CLI first, then a
+    token from the environment (GH_TOKEN / GITHUB_TOKEN), then an anonymous
+    download (which works for a public repo).
+    """
+    asset, tag, repo = entry["asset"], data["release_tag"], data["source_repo"]
+    out = dest_dir / asset
+
+    if shutil.which("gh"):
+        try:
+            subprocess.run(
+                ["gh", "release", "download", tag, "--repo", repo,
+                 "--pattern", asset, "--dir", str(dest_dir), "--clobber"],
+                check=True, capture_output=True, text=True)
+            if out.exists():
+                return out
+        except subprocess.CalledProcessError:
+            pass  # fall through to token / anonymous
+
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token:
+        rel = _api_json(
+            f"https://api.github.com/repos/{repo}/releases/tags/{tag}", token)
+        asset_id = next((a["id"] for a in (rel or {}).get("assets", [])
+                         if a["name"] == asset), None)
+        if asset_id is not None:
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{repo}/releases/assets/{asset_id}",
+                headers={"Authorization": f"Bearer {token}",
+                         "Accept": "application/octet-stream"})
+            with urllib.request.urlopen(req) as resp, open(out, "wb") as fh:
+                shutil.copyfileobj(resp, fh)
+            return out
+
+    url = f"https://github.com/{repo}/releases/download/{tag}/{asset}"
+    urllib.request.urlretrieve(url, out)
+    return out
+
+
+def _api_json(url: str, token: str):
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read())
+
+
+def _extract_binary(archive: Path, exe: str) -> bytes | None:
+    """Read `exe` out of a .zip or .tar.gz archive by basename. None if absent."""
+    name = archive.name.lower()
+    if name.endswith((".tar.gz", ".tgz", ".tar")):
+        with tarfile.open(archive) as tf:
+            for member in tf.getmembers():
+                if member.isfile() and member.name.rsplit("/", 1)[-1] == exe:
+                    extracted = tf.extractfile(member)
+                    if extracted is not None:
+                        return extracted.read()
+    else:
+        with zipfile.ZipFile(archive) as z:
+            for member in z.namelist():
+                if member.rsplit("/", 1)[-1] == exe:
+                    return z.read(member)
+    return None
 
 
 def load_lock():
@@ -98,24 +170,21 @@ def main() -> None:
 
     # Default: download the pinned release asset and extract the binary.
     if not entry.get("sha256"):
-        sys.exit(f"No published sha256 for '{plat}' yet. Use --from-local PATH until sml2c "
-                 f"ships release binaries (see the sml2c release-pipeline task).")
-    url = (f"https://github.com/{data['source_repo']}/releases/download/"
-           f"{data['release_tag']}/{entry['asset']}")
-    print(f"Downloading {url}", file=sys.stderr)
+        sys.exit(f"No pinned sha256 for '{plat}' in {LOCK.name}. Record it, or use "
+                 f"--from-local PATH against a local build.")
+    print(f"Fetching {entry['asset']} from {data['source_repo']} "
+          f"{data['release_tag']}", file=sys.stderr)
     with tempfile.TemporaryDirectory() as tmp:
-        zpath = Path(tmp) / entry["asset"]
         try:
-            urllib.request.urlretrieve(url, zpath)
+            apath = _download_asset(data, entry, Path(tmp))
         except Exception as e:  # noqa: BLE001 - surface any download failure clearly
-            sys.exit(f"download failed: {e}\n(Has sml2c published {data['release_tag']}? "
-                     f"See the sml2c release-pipeline task.)")
-        with zipfile.ZipFile(zpath) as z:
-            member = next((m for m in z.namelist() if m.endswith(entry["exe"])), None)
-            if not member:
-                sys.exit(f"{entry['exe']} not found inside {entry['asset']}")
-            z.extract(member, tmp)
-            shutil.copy2(Path(tmp) / member, target)
+            sys.exit(f"download failed: {e}\n(Is {data['source_repo']} "
+                     f"{data['release_tag']} accessible? For a private repo, "
+                     f"authenticate `gh` or set GH_TOKEN.)")
+        payload = _extract_binary(apath, entry["exe"])
+        if payload is None:
+            sys.exit(f"{entry['exe']} not found inside {entry['asset']}")
+        target.write_bytes(payload)
     if plat != "windows":
         os.chmod(target, 0o755)
     verify(target, entry)

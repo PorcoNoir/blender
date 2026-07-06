@@ -42,13 +42,19 @@ jobs:
 
       - name: Regen-diff gate (pinned sml2c)
         shell: bash
+        # sml2c is a private repo, so fetching its release asset needs a token
+        # with read access to it (the default GITHUB_TOKEN is scoped to this
+        # repo only). Provide it as the SML2C_TOKEN secret; without it the gate
+        # soft-skips so forks still pass.
+        env:
+          GH_TOKEN: ${{ secrets.SML2C_TOKEN }}
         run: |
-          if python tools/sysml/fetch_sml2c.py; then
+          if [ -n "$GH_TOKEN" ] && python tools/sysml/fetch_sml2c.py; then
             echo "Fetched pinned sml2c; checking generated files for drift..."
             python tools/sysml/gen_sysml_nodes.py --check
             python tools/sysml/gen_geometry_shapes.py --check
           else
-            echo "::warning title=Regen-diff skipped::sml2c release binaries are not"\
-              " published yet (pending SCRUM-453). The regen-diff gate activates"\
-              " automatically once fetch_sml2c.py can download the pinned binary."
+            echo "::warning title=Regen-diff skipped::Set the SML2C_TOKEN secret"\
+              " (a PAT with read access to the private PorcoNoir/sml2c repo) to"\
+              " enable the regen-diff gate."
           fi
