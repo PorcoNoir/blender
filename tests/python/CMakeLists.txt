@@ -385,6 +385,60 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_geometry.py
 )
 
+# Animation Binding A — bundled Occurrences/Time standard library resolves (SCRUM-644).
+add_blender_test(
+  bl_sysml_animation_lib
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_lib.py
+)
+
+# Animation Binding A — SysML time <-> Blender frames bridge (SCRUM-645).
+add_blender_test(
+  bl_sysml_time
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_time.py
+)
+
+# Animation Binding A — node <-> armature bone binding (SCRUM-646).
+add_blender_test(
+  bl_sysml_bone_binding
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bone_binding.py
+)
+
+# Animation Binding A — rig graph -> Blender armature (SCRUM-647).
+add_blender_test(
+  bl_sysml_rig
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_rig.py
+)
+
+# Animation Binding A — connections -> pose-bone constraints (SCRUM-648).
+add_blender_test(
+  bl_sysml_constraints
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_constraints.py
+)
+
+# Animation Binding A — Occurrence snapshots -> bone pose keyframes (SCRUM-649).
+add_blender_test(
+  bl_sysml_keyframes
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_keyframes.py
+)
+
+# Animation Binding A — states/successions -> Actions / NLA strips (SCRUM-650).
+add_blender_test(
+  bl_sysml_behavior
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_behavior.py
+)
+
+# Animation Binding A — Armature + animation -> SysML graph capture (SCRUM-651).
+add_blender_test(
+  bl_sysml_capture
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_capture.py
+)
+
+# Animation Binding A exit gate — graph <-> armature/animation round-trip (SCRUM-652).
+add_blender_test(
+  bl_sysml_animation_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_animation_exit.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes

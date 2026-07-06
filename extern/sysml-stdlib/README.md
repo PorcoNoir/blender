@@ -24,6 +24,12 @@ binding maps to Blender mesh primitives:
 `SpatialItems` carries only `SpatialItem { item shape : Shape; }`. Both grow as
 later geometry-binding stories need more (coordinate frames, CSG, etc.).
 
+`Time/` adds the temporal subset the **animation binding** needs (SCRUM-644): a
+parseable `Occurrences` (`Occurrence` with `snapshots` / `timeSlices`, `Snapshot`,
+`TimeSlice`) and `Time` (`Clock` with `currentTime : TimeInstant`). The full
+`Occurrences.kerml` uses `portion`/`inverse`/constraint syntax the pinned sml2c
+cannot parse. Snapshots map to Blender keyframes; timeSlices to action/NLA ranges.
+
 ## Layout & install
 
 ```
