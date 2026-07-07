@@ -46,6 +46,12 @@ jobs:
         # it needs no sml2c binary.
         run: python tools/sysml/gen_kind_category.py --check
 
+      - name: Stdlib index drift (pure Python, no sml2c)
+        shell: bash
+        # Catalog of resolvable standard-library packages, derived from the
+        # committed bundle + curated built-in list. Always runs.
+        run: python tools/sysml/gen_stdlib_index.py --check
+
       - name: Regen-diff gate (pinned sml2c)
         shell: bash
         # sml2c is a private repo, so fetching its release asset needs a token

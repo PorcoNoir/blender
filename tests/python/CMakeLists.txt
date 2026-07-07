@@ -499,6 +499,36 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml4_exit.py
 )
 
+# BSML5 — standard-library index (builtin + bundled catalog) (SCRUM-675).
+add_blender_test(
+  bl_sysml_stdlib_index
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_stdlib_index.py
+)
+
+# BSML5 — in-editor library browser (insert library-typed elements) (SCRUM-676).
+add_blender_test(
+  bl_sysml_library
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_library.py
+)
+
+# BSML5 — corpus coverage guard (manifest == dir == gates) (SCRUM-677).
+add_blender_test(
+  bl_sysml_corpus_coverage
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_corpus_coverage.py
+)
+
+# BSML5 — tutorial .blend generator (SCRUM-678).
+add_blender_test(
+  bl_sysml_tutorials
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_tutorials.py
+)
+
+# BSML5 exit gate — MVP complete (SCRUM-680).
+add_blender_test(
+  bl_sysml_bsml5_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml5_exit.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
