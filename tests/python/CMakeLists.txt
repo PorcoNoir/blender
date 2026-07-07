@@ -511,6 +511,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_library.py
 )
 
+# BSML5 — corpus coverage guard (manifest == dir == gates) (SCRUM-677).
+add_blender_test(
+  bl_sysml_corpus_coverage
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_corpus_coverage.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes

@@ -32,7 +32,7 @@ CORPUS_DIR = os.path.join(os.path.dirname(__file__), "sysml_corpus")
 CORPUS = [
     "01_minimal.sysml", "02_imports.sysml", "03_specialization.sysml",
     "04_usages.sysml", "05_multiplicity.sysml", "06_magical_bag.sysml",
-    "all-kinds.sysml",
+    "07_library_types.sysml", "all-kinds.sysml",
 ]
 
 
@@ -81,10 +81,15 @@ def ast_element_names(ast):
     return names
 
 
-@unittest.skipUnless(sml2c_binary(), "sml2c binary not available next to blender")
 class SysMLRoundTripTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Soft-skip without sml2c for dev; hard failure when the release gate
+        # sets SYSML_REQUIRE_SML2C (the binary is installed next to blender there).
+        if sml2c_binary() is None:
+            if os.environ.get("SYSML_REQUIRE_SML2C"):
+                raise AssertionError("SYSML_REQUIRE_SML2C set but sml2c binary not found")
+            raise unittest.SkipTest("sml2c binary not available next to blender")
         cls._dir = tempfile.mkdtemp()
 
     def _import(self, filepath):

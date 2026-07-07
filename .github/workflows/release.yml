@@ -96,6 +96,11 @@ jobs:
         # tree/nodes (BSML1), end-to-end import, and the tutorial-corpus import
         # fidelity gate (BSML2). sml2c is installed next to blender.exe by the
         # install step, so the import/corpus gates run for real here.
+        #
+        # SYSML_REQUIRE_SML2C makes the sml2c-dependent gates hard-fail if the
+        # binary is missing here rather than soft-skipping (BSML5 / SCRUM-677).
+        env:
+          SYSML_REQUIRE_SML2C: "1"
         run: >
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_nodetree.py &&
@@ -103,6 +108,8 @@ jobs:
           --python tests\python\bl_sysml_import.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_corpus.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_corpus_coverage.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_export.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup

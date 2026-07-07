@@ -44,6 +44,7 @@ BASELINE = {
     "04_usages.sysml":         {"nodes": 7,  "links": 8},
     "05_multiplicity.sysml":   {"nodes": 7,  "links": 9},
     "06_magical_bag.sysml":    {"nodes": 8,  "links": 10},
+    "07_library_types.sysml":  {"nodes": 6,  "links": 6},
     "all-kinds.sysml":         {"nodes": 45, "links": 66},
 }
 
@@ -123,8 +124,16 @@ def expected_edges(ast, names):
     return edges
 
 
-@unittest.skipUnless(sml2c_binary(), "sml2c binary not available next to blender")
 class SysMLCorpusFidelityTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Soft-skip without sml2c for dev; a hard failure when the release gate
+        # sets SYSML_REQUIRE_SML2C (the binary is installed next to blender there).
+        if sml2c_binary() is None:
+            if os.environ.get("SYSML_REQUIRE_SML2C"):
+                raise AssertionError("SYSML_REQUIRE_SML2C set but sml2c binary not found")
+            raise unittest.SkipTest("sml2c binary not available next to blender")
+
     def _import(self, path):
         before = set(bpy.data.node_groups.keys())
         result = bpy.ops.node.sysml_import(filepath=path)
