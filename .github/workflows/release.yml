@@ -167,6 +167,8 @@ jobs:
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_tutorials.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
+          --python tests\python\bl_sysml_bsml5_exit.py &&
+          "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_geometry_shapes.py &&
           "%BUILD_DIR%\bin\blender.exe" --background --factory-startup
           --python tests\python\bl_sysml_binding.py &&

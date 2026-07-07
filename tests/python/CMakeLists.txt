@@ -523,6 +523,12 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_tutorials.py
 )
 
+# BSML5 exit gate — MVP complete (SCRUM-680).
+add_blender_test(
+  bl_sysml_bsml5_exit
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_sysml_bsml5_exit.py
+)
+
 # Geometry Binding A — generated shape -> Blender primitive resolver (SCRUM-625).
 add_blender_test(
   bl_sysml_geometry_shapes
